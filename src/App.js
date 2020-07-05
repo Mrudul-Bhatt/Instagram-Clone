@@ -1,26 +1,83 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+// import React from 'react';
+// import './App.css';
+// import Navbar from './components/Navbar';
+// import Signin from './components/Pages/Signin';
+// import { Route, Switch } from 'react-router';
+// import Signup from './components/Pages/Signup';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+// function App() {
+// 	let routes = (
+// 		<Switch>
+// 			<Route path='/signin' exact component={Signin} />
+// 			<Route path='/signup' exact component={Signup} />
+// 		</Switch>
+// 	);
+
+// 	return (
+// 		<div>
+// 			<Navbar />
+// 			{routes}
+// 		</div>
+// 	);
+// }
+
+// export default App;
+
+import React, { useEffect } from 'react';
+import './App.css';
+import Navbar from './components/Navbar';
+import { Route, Switch, useHistory } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import * as actions from './store/actions/user';
+import Signup from './components/Pages/Signup';
+import Signin from './components/Pages/Signin';
+import Home from './components/Pages/Home';
+import Explore from './components/Pages/Explore';
+import AddPost from './components/Pages/AddPost';
+import Profile from './components/Pages/Profile';
+
+const App = () => {
+	const history = useHistory();
+	const user = JSON.parse(localStorage.getItem('user'));
+	const path = useSelector((state) => state.path);
+	const dispatch = useDispatch();
+	const checkAuth = () => dispatch(actions.checkAuth());
+
+	useEffect(() => {
+		//console.log('check auth');
+		checkAuth();
+
+		history.push(path);
+	}, [path]);
+
+	let routes = (
+		<Switch>
+			<Route path='/signin' exact component={Signin} />
+			<Route path='/signup' exact component={Signup} />
+		</Switch>
+	);
+
+	if (user) {
+		routes = (
+			<Switch>
+				<Route path='/' exact component={Home} />
+				<Route path='/explore' exact component={Explore} />
+				<Route path='/addpost' exact component={AddPost} />
+				<Route path='/profile' exact component={Profile} />
+				{/* <Route path='/addnote' exact component={AddNote} />
+				<Route path='/favnotes' exact component={FavNotes} />
+				<Route path='/singlenote/:noteId' exact component={SingleNote} />
+				<Route path='/updatenote/:noteId' exact component={UpdateNote} /> */}
+			</Switch>
+		);
+	}
+
+	return (
+		<div>
+			<Navbar />
+			{routes}
+		</div>
+	);
+};
 
 export default App;
