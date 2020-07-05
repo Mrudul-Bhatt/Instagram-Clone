@@ -236,11 +236,18 @@ const Explore = () => {
 							>
 								<CardHeader
 									avatar={
-										<Avatar
-											aria-label='recipe'
-											className={classes.avatar}
-											src={item.postedBy.imageUrl}
-										></Avatar>
+										<Link
+											to={
+												item.postedBy._id === user._id
+													? '/profile'
+													: '/user/' + item.postedBy._id
+											}
+										>
+											<Avatar
+												aria-label='recipe'
+												src={item ? item.postedBy.imageUrl : null}
+											></Avatar>
+										</Link>
 									}
 									action={
 										item.postedBy._id === user._id && (

@@ -21,6 +21,8 @@ import {
 	DialogContent,
 	DialogContentText,
 	DialogActions,
+	ListItem,
+	ListItemText,
 } from '@material-ui/core';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useHistory } from 'react-router-dom';
@@ -35,7 +37,13 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { baseUrl } from '../../utility/helper';
 import CommentIcon from '@material-ui/icons/Comment';
-import { Face, AddPhotoAlternate, DeleteOutline } from '@material-ui/icons';
+import {
+	Face,
+	AddPhotoAlternate,
+	DeleteOutline,
+	CloudUpload,
+	InsertLink,
+} from '@material-ui/icons';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
 	return <Slide direction='up' ref={ref} {...props} />;
@@ -90,8 +98,8 @@ const Profile = () => {
 	const user = JSON.parse(localStorage.getItem('user'));
 	const [deleteId, setDeleteId] = useState(null);
 	const [deleteModal, setDeleteModal] = useState(false);
+	const [imageModal, setImageModal] = useState(false);
 	const history = useHistory();
-	const [pics, setPics] = useState([]);
 	const [image, setImage] = useState('');
 	const [url, setUrl] = useState('');
 	const [loader, setLoader] = useState(false);
@@ -215,7 +223,7 @@ const Profile = () => {
 					Authorization: 'Bearer ' + localStorage.getItem('jwt'),
 				},
 				body: JSON.stringify({
-					postId: data._id,
+					postId: user._id,
 					imageUrl: url,
 				}),
 			})
@@ -224,11 +232,16 @@ const Profile = () => {
 					//console.log(response);
 					if (response.error) {
 						// M.toast({ html: response.error, classes: 'red' });
+						message.error(response.error);
 					} else {
+						// console.log(response);
+						// console.log(response.data);
 						localStorage.setItem('user', JSON.stringify(response.data));
 						// M.toast({ html: 'Image updated successfully', classes: 'green' });
-						history.push('/');
+						message.success('Profile image updated!');
+						setImage(null);
 					}
+
 					setLoader(false);
 				})
 				.catch((error) => {
@@ -259,6 +272,7 @@ const Profile = () => {
 	const ConfirmDelete = () => {
 		return (
 			<Dialog
+				fullWidth
 				open={deleteModal}
 				TransitionComponent={Transition}
 				keepMounted
@@ -284,7 +298,7 @@ const Profile = () => {
 							setDeleteId(null);
 							setDeleteModal(false);
 						}}
-						color='secondary'
+						color='primary'
 					>
 						Cancel
 					</Button>
@@ -302,8 +316,87 @@ const Profile = () => {
 		);
 	};
 
+	const UpdateImage = () => {
+		return (
+			<Dialog
+				fullWidth
+				open={imageModal}
+				TransitionComponent={Transition}
+				keepMounted
+				onClose={() => {
+					setImage(null);
+					setImageModal(false);
+				}}
+				aria-labelledby='alert-dialog-slide-title'
+				aria-describedby='alert-dialog-slide-description'
+				style={{ width: '100%' }}
+			>
+				<DialogTitle id='alert-dialog-slide-title'>
+					{'Update profile image'}
+				</DialogTitle>
+				<DialogContent>
+					{/* <DialogContentText id='alert-dialog-slide-description'>
+						This action cannot be undone!
+					</DialogContentText> */}
+
+					<Grid container spacing={4}>
+						<Grid item xs={12} sm={12}>
+							<input
+								id='contained-button-file'
+								type='file'
+								hidden
+								onChange={(e) => setImage(e.target.files[0])}
+							/>
+							<label htmlFor='contained-button-file'>
+								<Button
+									variant='outlined'
+									color='primary'
+									component='span'
+									style={{ width: '100%' }}
+									startIcon={<CloudUpload />}
+								>
+									Upload Image
+								</Button>
+							</label>
+						</Grid>
+
+						{image && (
+							<Grid item xs={12} sm={12}>
+								<ListItem>
+									<InsertLink />
+									<ListItemText primary={image.name} />
+								</ListItem>
+							</Grid>
+						)}
+					</Grid>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						onClick={() => {
+							setImage(null);
+							setImageModal(false);
+						}}
+						color='primary'
+					>
+						Cancel
+					</Button>
+					<Button
+						onClick={() => {
+							addImage();
+							setImageModal(false);
+						}}
+						color='primary'
+					>
+						Update
+					</Button>
+				</DialogActions>
+			</Dialog>
+		);
+	};
+
 	return (
 		<div>
+			<UpdateImage />
 			<ConfirmDelete />
 			<Container component='main' maxWidth='sm'>
 				<Card
@@ -315,17 +408,20 @@ const Profile = () => {
 						avatar={
 							<Avatar
 								aria-label='recipe'
-								src={user.imageUrl !== 'noimage' ? user.imageUrl : null}
+								src={user && user.imageUrl !== 'noimage' ? user.imageUrl : null}
 								className={classes.avatar2}
 							></Avatar>
 						}
 						action={
-							<IconButton aria-label='settings'>
+							<IconButton
+								aria-label='settings'
+								onClick={() => setImageModal(true)}
+							>
 								<AddPhotoAlternate />
 							</IconButton>
 						}
-						title={<h1>{user.name}</h1>}
-						subheader={<h2>{user.email}</h2>}
+						title={<h1>{user && user.name}</h1>}
+						subheader={<h2>{user && user.email}</h2>}
 					/>
 					<Divider />
 					<Grid container padd>
@@ -335,7 +431,7 @@ const Profile = () => {
 								color='textSecondary'
 								style={{ textAlign: 'center' }}
 							>
-								{user.followers.length + ' '}Followers
+								{user && user.followers.length + ' '}Followers
 							</Typography>
 						</Grid>
 						<Grid item sm={4} xs={4}>
@@ -353,7 +449,7 @@ const Profile = () => {
 								color='textSecondary'
 								style={{ textAlign: 'center' }}
 							>
-								{user.following.length + ' '}Following
+								{user && user.following.length + ' '}Following
 							</Typography>
 						</Grid>
 					</Grid>

@@ -160,11 +160,19 @@ const Home = () => {
 							>
 								<CardHeader
 									avatar={
-										<Avatar
-											aria-label='recipe'
-											className={classes.avatar}
-											src={item.postedBy.imageUrl}
-										></Avatar>
+										<Link
+											to={
+												item.postedBy._id === user._id
+													? '/profile'
+													: '/user/' + item.postedBy._id
+											}
+										>
+											<Avatar
+												aria-label='recipe'
+												className={classes.avatar}
+												src={item.postedBy.imageUrl}
+											/>
+										</Link>
 									}
 									action={
 										<IconButton aria-label='settings'>

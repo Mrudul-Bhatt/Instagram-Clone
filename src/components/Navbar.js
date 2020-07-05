@@ -174,11 +174,11 @@ export default function NavBar() {
 			<List>
 				<ListItem button selected={activeNav === 1}>
 					<ListItemAvatar>
-						<Avatar src={user.imageUrl} />
+						<Avatar src={user && user.imageUrl} />
 					</ListItemAvatar>
 					<ListItemText
-						primary={user.name}
-						secondary={user.email}
+						primary={user && user.name}
+						secondary={user && user.email}
 						onClick={() => {
 							history.push('/profile');
 							setActiveNav(1);
@@ -203,7 +203,7 @@ export default function NavBar() {
 							history.push('/');
 							setActiveNav(2);
 						}}
-					/>
+					/>{' '}
 				</ListItem>
 			</List>
 			<List>
