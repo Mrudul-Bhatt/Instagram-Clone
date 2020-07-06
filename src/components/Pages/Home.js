@@ -170,7 +170,11 @@ const Home = () => {
 											<Avatar
 												aria-label='recipe'
 												className={classes.avatar}
-												src={item.postedBy.imageUrl}
+												src={
+													item.postedBy.imageUrl !== 'noimage'
+														? item.postedBy.imageUrl
+														: null
+												}
 											/>
 										</Link>
 									}

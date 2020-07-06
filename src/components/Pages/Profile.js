@@ -23,6 +23,11 @@ import {
 	DialogActions,
 	ListItem,
 	ListItemText,
+	Link as MLink,
+	AppBar,
+	Toolbar,
+	List,
+	ListItemAvatar,
 } from '@material-ui/core';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useHistory } from 'react-router-dom';
@@ -43,6 +48,7 @@ import {
 	DeleteOutline,
 	CloudUpload,
 	InsertLink,
+	Close,
 } from '@material-ui/icons';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -81,9 +87,12 @@ const useStyles = makeStyles((theme) => ({
 		width: theme.spacing(14),
 		height: theme.spacing(14),
 	},
-	large: {
-		width: theme.spacing(15),
-		height: theme.spacing(15),
+	appBar: {
+		position: 'relative',
+	},
+	title: {
+		marginLeft: theme.spacing(2),
+		flex: 1,
 	},
 }));
 
@@ -103,6 +112,11 @@ const Profile = () => {
 	const [image, setImage] = useState('');
 	const [url, setUrl] = useState('');
 	const [loader, setLoader] = useState(false);
+	const [followersDialog, setFollowersDialog] = useState(false);
+	const [followingDialog, setFollowingDialog] = useState(false);
+	const [followersData, setFollowersData] = useState([]);
+	// const [FUfClicked, setFUfClicked] = useState(false)
+	const [followingData, setFollowingData] = useState([]);
 
 	useEffect(() => {
 		if (notifyE) {
@@ -211,6 +225,30 @@ const Profile = () => {
 			})
 			.catch((err) => console.log(err));
 	};
+
+	useEffect(() => {
+		fetch(`${baseUrl}/allusers`, {
+			headers: {
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+		})
+			.then((res) => res.json())
+			.then((data) => {
+				const newFollowersData = data.result.filter((item) => {
+					if (user.followers.includes(item._id)) {
+						return item;
+					}
+				});
+				setFollowersData(newFollowersData);
+				const newFollowingData = data.result.filter((item) => {
+					if (user.following.includes(item._id)) {
+						return item;
+					}
+				});
+				setFollowingData(newFollowingData);
+			})
+			.catch((error) => console.log(error));
+	}, []);
 
 	useEffect(() => {
 		if (url) {
@@ -394,8 +432,124 @@ const Profile = () => {
 		);
 	};
 
+	const FollowersDialog = () => {
+		return (
+			<Dialog
+				fullScreen
+				open={followersDialog}
+				onClose={() => setFollowersDialog(false)}
+				TransitionComponent={Transition}
+			>
+				<AppBar className={classes.appBar}>
+					<Toolbar>
+						<IconButton
+							edge='start'
+							color='inherit'
+							onClick={() => setFollowersDialog(false)}
+							aria-label='close'
+						>
+							<Close />
+						</IconButton>
+						<Typography color='inherit' variant='h6' className={classes.title}>
+							Followers
+						</Typography>
+						<Button
+							autoFocus
+							color='inherit'
+							onClick={() => setFollowersDialog(false)}
+						>
+							Done
+						</Button>
+					</Toolbar>
+				</AppBar>
+				<List>
+					{followersData &&
+						followersData.map((item) => {
+							return (
+								<div key={item._id}>
+									<ListItem button>
+										<ListItemAvatar>
+											<Avatar src={item.imageUrl} />
+										</ListItemAvatar>
+										<ListItemText
+											primary={item.name}
+											secondary={item.email}
+											onClick={() => {
+												history.push(`/user/${item._id}`);
+												setFollowersDialog(false);
+											}}
+										/>
+									</ListItem>
+									<Divider />
+								</div>
+							);
+						})}
+				</List>
+			</Dialog>
+		);
+	};
+
+	const FollowingDialog = () => {
+		return (
+			<Dialog
+				fullScreen
+				open={followingDialog}
+				onClose={() => setFollowingDialog(false)}
+				TransitionComponent={Transition}
+			>
+				<AppBar className={classes.appBar}>
+					<Toolbar>
+						<IconButton
+							edge='start'
+							color='inherit'
+							onClick={() => setFollowingDialog(false)}
+							aria-label='close'
+						>
+							<Close />
+						</IconButton>
+						<Typography color='inherit' variant='h6' className={classes.title}>
+							Following
+						</Typography>
+						<Button
+							autoFocus
+							color='inherit'
+							onClick={() => setFollowingDialog(false)}
+						>
+							Done
+						</Button>
+					</Toolbar>
+				</AppBar>
+				<List>
+					{followingData &&
+						followingData.map((item) => {
+							return (
+								<div key={item._id}>
+									<ListItem button>
+										<ListItemAvatar>
+											<Avatar src={item.imageUrl} />
+										</ListItemAvatar>
+										<ListItemText
+											primary={item.name}
+											secondary={item.email}
+											onClick={() => {
+												history.push(`/user/${item._id}`);
+												setFollowingDialog(false);
+											}}
+										/>
+									</ListItem>
+									<Divider />
+								</div>
+							);
+						})}
+				</List>
+			</Dialog>
+		);
+	};
+
 	return (
 		<div>
+			<FollowersDialog />
+			<FollowingDialog />
 			<UpdateImage />
 			<ConfirmDelete />
 			<Container component='main' maxWidth='sm'>
@@ -431,7 +585,14 @@ const Profile = () => {
 								color='textSecondary'
 								style={{ textAlign: 'center' }}
 							>
-								{user && user.followers.length + ' '}Followers
+								<MLink
+									color='inherit'
+									onClick={() => {
+										setFollowersDialog(true);
+									}}
+								>
+									{user && user.followers.length + ' '}Followers
+								</MLink>
 							</Typography>
 						</Grid>
 						<Grid item sm={4} xs={4}>
@@ -449,7 +610,14 @@ const Profile = () => {
 								color='textSecondary'
 								style={{ textAlign: 'center' }}
 							>
-								{user && user.following.length + ' '}Following
+								<MLink
+									color='inherit'
+									onClick={() => {
+										setFollowingDialog(true);
+									}}
+								>
+									{user && user.following.length + ' '}Following
+								</MLink>
 							</Typography>
 						</Grid>
 					</Grid>
@@ -470,8 +638,12 @@ const Profile = () => {
 										<Avatar
 											aria-label='recipe'
 											className={classes.avatar}
-											src={item.postedBy.imageUrl}
-										></Avatar>
+											src={
+												user && user.imageUrl !== 'noimage'
+													? user.imageUrl
+													: null
+											}
+										/>
 									}
 									action={
 										<IconButton

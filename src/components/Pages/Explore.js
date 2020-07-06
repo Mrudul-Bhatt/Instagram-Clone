@@ -245,7 +245,11 @@ const Explore = () => {
 										>
 											<Avatar
 												aria-label='recipe'
-												src={item ? item.postedBy.imageUrl : null}
+												src={
+													item.postedBy.imageUrl !== 'noimage'
+														? item.postedBy.imageUrl
+														: null
+												}
 											></Avatar>
 										</Link>
 									}
