@@ -15,7 +15,21 @@ import {
 	CardContent,
 	CardActions,
 	IconButton,
+	Dialog,
+	Slide,
+	DialogTitle,
+	DialogContent,
+	DialogContentText,
+	DialogActions,
+	AppBar,
+	Toolbar,
+	List,
+	ListItemAvatar,
+	ListItem,
+	ListItemText,
+	ListItemIcon,
 } from '@material-ui/core';
+import { Alert, Skeleton } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as actions from '../../store/actions/user';
@@ -29,8 +43,21 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { baseUrl } from '../../utility/helper';
 import CommentIcon from '@material-ui/icons/Comment';
+import { DeleteOutline, Close, AddComment, Comment } from '@material-ui/icons';
+import Loader from '../../utility/loader';
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+	return <Slide direction='up' ref={ref} {...props} />;
+});
 
 const useStyles = makeStyles((theme) => ({
+	appBar: {
+		position: 'relative',
+	},
+	title: {
+		marginLeft: theme.spacing(2),
+		flex: 1,
+	},
 	root: {
 		maxWidth: 600,
 		maxHeight: 600,
@@ -64,6 +91,12 @@ const Home = () => {
 	const dispatch = useDispatch();
 	const cleanup = () => dispatch(actions.cleanup());
 	const user = JSON.parse(localStorage.getItem('user'));
+	const [loading, setLoading] = useState(false);
+	const [commentsDialog, setCommentsDialog] = useState(false);
+	const [itemData, setItemData] = useState(null);
+	const [itemId, setItemId] = useState('');
+	const [addCommentDialog, setAddCommentDialog] = useState(false);
+	const [choiceCommentDialog, setChoiceCommentDialog] = useState(false);
 
 	useEffect(() => {
 		if (notifyE) {
@@ -80,6 +113,7 @@ const Home = () => {
 	}, [click]);
 
 	useEffect(() => {
+		setLoading(true);
 		fetch(`${baseUrl}/allsubpost`, {
 			headers: {
 				'Content-type': 'application/json',
@@ -91,8 +125,12 @@ const Home = () => {
 				//console.log(result);
 
 				setData(result.posts);
+				setLoading(false);
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				console.log(err);
+				setLoading(false);
+			});
 	}, []);
 
 	const like = (postId) => {
@@ -147,8 +185,302 @@ const Home = () => {
 			.catch((err) => console.log(err));
 	};
 
+	const singlePost = () => {
+		fetch(`${baseUrl}/singlepost`, {
+			method: 'post',
+			headers: {
+				'Content-type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({
+				itemId,
+			}),
+		})
+			.then((res) => res.json())
+			.then((result) => {
+				console.log(result.mypost.comments.length);
+
+				setItemData(result.mypost);
+				setCommentsDialog(true);
+			})
+			.catch((err) => console.log(err));
+	};
+
+	const postComment = (value) => {
+		console.log(value);
+		fetch(`${baseUrl}/comments`, {
+			method: 'put',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({ text: value, postId: itemId }),
+		})
+			.then((res) => res.json())
+			.then((response) => {
+				console.log(response);
+				const newData = data.map((item) => {
+					if (item._id === response.result._id) {
+						return response.result;
+					} else {
+						return item;
+					}
+				});
+				setData(newData);
+				setAddCommentDialog(false);
+				setItemId('');
+				message.success('Comment added');
+			})
+			.catch((error) => {
+				console.log(error);
+				message.error('Server error!');
+			});
+	};
+
+	const PostCommentDialog = () => {
+		const [comment, setComment] = useState('');
+
+		return (
+			<Dialog
+				fullWidth
+				open={addCommentDialog}
+				TransitionComponent={Transition}
+				onClose={() => {
+					setAddCommentDialog(false);
+					setItemId('');
+					setComment('');
+				}}
+				style={{ width: '100%' }}
+			>
+				<DialogTitle id='alert-dialog-slide-title'>
+					{'Post Comment'}
+				</DialogTitle>
+				<DialogContent>
+					<TextField
+						autoFocus
+						margin='dense'
+						id='name'
+						placeholder='Add Comment...'
+						type='text'
+						fullWidth
+						value={comment}
+						onChange={(e) => setComment(e.target.value)}
+					/>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						onClick={() => {
+							setAddCommentDialog(false);
+							setItemId('');
+
+							setComment('');
+						}}
+						color='primary'
+					>
+						Cancel
+					</Button>
+					<Button
+						type='submit'
+						color='primary'
+						onClick={() => postComment(comment)}
+					>
+						Post
+					</Button>
+				</DialogActions>
+			</Dialog>
+		);
+	};
+
+	const ChoiceCommentDialog = () => {
+		return (
+			<Dialog
+				fullWidth
+				open={choiceCommentDialog}
+				TransitionComponent={Transition}
+				keepMounted
+				onClose={() => {
+					setChoiceCommentDialog(false);
+				}}
+				aria-labelledby='alert-dialog-slide-title'
+				aria-describedby='alert-dialog-slide-description'
+				style={{ width: '100%' }}
+			>
+				<DialogContent>
+					<List>
+						<ListItem>
+							<ListItemIcon>
+								<AddComment />
+							</ListItemIcon>
+							<ListItemText
+								primary='Post Comment'
+								onClick={() => {
+									setAddCommentDialog(true);
+									setChoiceCommentDialog(false);
+								}}
+							/>
+						</ListItem>
+						<ListItem>
+							<ListItemIcon>
+								<Comment />
+							</ListItemIcon>
+							<ListItemText
+								primary='All Comments'
+								onClick={() => {
+									singlePost();
+									setChoiceCommentDialog(false);
+								}}
+							/>
+						</ListItem>
+					</List>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						onClick={() => {
+							setChoiceCommentDialog(false);
+						}}
+						color='primary'
+					>
+						Cancel
+					</Button>
+				</DialogActions>
+			</Dialog>
+		);
+	};
+
+	const CommentsDialog = () => {
+		return (
+			<Dialog
+				fullScreen
+				keepMounted
+				open={commentsDialog}
+				onClose={() => {
+					setCommentsDialog(false);
+					setItemId('');
+					setItemData(null);
+				}}
+				TransitionComponent={Transition}
+			>
+				<AppBar className={classes.appBar}>
+					<Toolbar>
+						<IconButton
+							edge='start'
+							color='inherit'
+							onClick={() => {
+								setCommentsDialog(false);
+								setItemId(null);
+								setItemData(null);
+							}}
+							aria-label='close'
+						>
+							<Close />
+						</IconButton>
+						<Typography color='inherit' variant='h6' className={classes.title}>
+							Comments
+						</Typography>
+						<Button
+							autoFocus
+							color='inherit'
+							onClick={() => {
+								setCommentsDialog(false);
+								setItemId(null);
+								setItemData(null);
+							}}
+						>
+							done
+						</Button>
+					</Toolbar>
+				</AppBar>
+				<List>
+					{console.log(itemData)}
+					{itemData && itemData.comments.length === 0 ? (
+						<div className={classes.alert}>
+							<Alert severity='info'>No comments yet on this post!</Alert>
+						</div>
+					) : null}
+					{itemData &&
+						itemData.comments.map((item, index) => {
+							return (
+								<div key={index}>
+									<ListItem button>
+										<ListItemAvatar>
+											<Avatar src={item.postedBy.imageUrl} />
+										</ListItemAvatar>
+										<ListItemText
+											primary={item.postedBy.name}
+											secondary={item.text}
+										/>
+									</ListItem>
+									<Divider />
+								</div>
+							);
+						})}
+				</List>
+			</Dialog>
+		);
+	};
+
+	// const Loader = () => {
+	// 	const array = [1, 2, 3, 4, 5];
+	// 	return (
+	// 		<Container component='main' maxWidth='sm'>
+	// 			{array.map((item, index) => {
+	// 				return (
+	// 					<Card
+	// 						className={classes.root}
+	// 						style={{ marginTop: '30px' }}
+	// 						key={index}
+	// 						elevation={0}
+	// 						variant='outlined'
+	// 					>
+	// 						<CardHeader
+	// 							avatar={
+	// 								<Skeleton
+	// 									animation='wave'
+	// 									variant='circle'
+	// 									width={40}
+	// 									height={40}
+	// 								/>
+	// 							}
+	// 							title={
+	// 								<Skeleton
+	// 									animation='wave'
+	// 									height={10}
+	// 									width='80%'
+	// 									style={{ marginBottom: 6 }}
+	// 								/>
+	// 							}
+	// 							subheader={
+	// 								<Skeleton animation='wave' height={10} width='40%' />
+	// 							}
+	// 						/>
+
+	// 						<Skeleton
+	// 							animation='wave'
+	// 							variant='rect'
+	// 							className={classes.media}
+	// 						/>
+
+	// 						<CardContent>
+	// 							<Skeleton
+	// 								animation='wave'
+	// 								height={10}
+	// 								style={{ marginBottom: 6 }}
+	// 							/>
+	// 							<Skeleton animation='wave' height={10} width='80%' />
+	// 						</CardContent>
+	// 					</Card>
+	// 				);
+	// 			})}
+	// 		</Container>
+	// 	);
+	// };
+
 	return (
 		<div>
+			{loading && <Loader />}
+			<PostCommentDialog />
+			<ChoiceCommentDialog />
+			<CommentsDialog />
 			<Container component='main' maxWidth='sm'>
 				{data &&
 					data.map((item) => {
@@ -157,6 +489,8 @@ const Home = () => {
 								className={classes.root}
 								style={{ marginTop: '30px' }}
 								key={item._id}
+								elevation={0}
+								variant='outlined'
 							>
 								<CardHeader
 									avatar={
@@ -218,17 +552,16 @@ const Home = () => {
 											{item.likes.length}
 										</IconButton>
 									)}
-									<IconButton aria-label='share'>
+									<IconButton
+										aria-label='share'
+										onClick={() => {
+											setItemId(item._id);
+											setChoiceCommentDialog(true);
+										}}
+									>
 										<CommentIcon /> {item.comments.length}
 									</IconButton>
-									<IconButton
-										//   className={clsx(classes.expand, {
-										//     [classes.expandOpen]: expanded,
-										//   })}
-										//   onClick={handleExpandClick}
-										//   aria-expanded={expanded}
-										aria-label='show more'
-									>
+									<IconButton aria-label='show more'>
 										<ExpandMoreIcon />
 									</IconButton>
 								</CardActions>
@@ -241,129 +574,3 @@ const Home = () => {
 };
 
 export default Home;
-
-// import React from 'react';
-// import { makeStyles } from '@material-ui/core/styles';
-// import clsx from 'clsx';
-// import Card from '@material-ui/core/Card';
-// import CardHeader from '@material-ui/core/CardHeader';
-// import CardMedia from '@material-ui/core/CardMedia';
-// import CardContent from '@material-ui/core/CardContent';
-// import CardActions from '@material-ui/core/CardActions';
-// import Collapse from '@material-ui/core/Collapse';
-// import Avatar from '@material-ui/core/Avatar';
-// import IconButton from '@material-ui/core/IconButton';
-// import Typography from '@material-ui/core/Typography';
-// import { red } from '@material-ui/core/colors';
-// import FavoriteIcon from '@material-ui/icons/Favorite';
-// import ShareIcon from '@material-ui/icons/Share';
-// import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-// import MoreVertIcon from '@material-ui/icons/MoreVert';
-
-// const useStyles = makeStyles((theme) => ({
-// 	root: {
-// 		maxWidth: 345,
-// 	},
-// 	media: {
-// 		height: 0,
-// 		paddingTop: '56.25%', // 16:9
-// 	},
-// 	expand: {
-// 		transform: 'rotate(0deg)',
-// 		marginLeft: 'auto',
-// 		transition: theme.transitions.create('transform', {
-// 			duration: theme.transitions.duration.shortest,
-// 		}),
-// 	},
-// 	expandOpen: {
-// 		transform: 'rotate(180deg)',
-// 	},
-// 	avatar: {
-// 		backgroundColor: red[500],
-// 	},
-// }));
-
-// export default function RecipeReviewCard() {
-// 	const classes = useStyles();
-// 	//const [expanded, setExpanded] = React.useState(false);
-
-// 	//   const handleExpandClick = () => {
-// 	//     setExpanded(!expanded);
-// 	//   };
-
-// 	return (
-// 		<Card className={classes.root}>
-// 			<CardHeader
-// 				avatar={
-// 					<Avatar aria-label='recipe' className={classes.avatar}>
-// 						R
-// 					</Avatar>
-// 				}
-// 				action={
-// 					<IconButton aria-label='settings'>
-// 						<MoreVertIcon />
-// 					</IconButton>
-// 				}
-// 				title='Shrimp and Chorizo Paella'
-// 				subheader='September 14, 2016'
-// 			/>
-// 			<CardMedia
-// 				className={classes.media}
-// 				image='/static/images/cards/paella.jpg'
-// 				title='Paella dish'
-// 			/>
-// 			<CardContent>
-// 				<Typography variant='body2' color='textSecondary' component='p'>
-// 					This impressive paella is a perfect party dish and a fun meal to cook
-// 					together with your guests. Add 1 cup of frozen peas along with the
-// 					mussels, if you like.
-// 				</Typography>
-// 			</CardContent>
-// 			<CardActions disableSpacing>
-// 				<IconButton aria-label='add to favorites'>
-// 					<FavoriteIcon />
-// 				</IconButton>
-// 				<IconButton aria-label='share'>
-// 					<ShareIcon />
-// 				</IconButton>
-// 				<IconButton
-// 					//   className={clsx(classes.expand, {
-// 					//     [classes.expandOpen]: expanded,
-// 					//   })}
-// 					//   onClick={handleExpandClick}
-// 					//   aria-expanded={expanded}
-// 					aria-label='show more'
-// 				>
-// 					<ExpandMoreIcon />
-// 				</IconButton>
-// 			</CardActions>
-// 			{/* <Collapse in={expanded} timeout="auto" unmountOnExit>
-//         <CardContent>
-//           <Typography paragraph>Method:</Typography>
-//           <Typography paragraph>
-//             Heat 1/2 cup of the broth in a pot until simmering, add saffron and set aside for 10
-//             minutes.
-//           </Typography>
-//           <Typography paragraph>
-//             Heat oil in a (14- to 16-inch) paella pan or a large, deep skillet over medium-high
-//             heat. Add chicken, shrimp and chorizo, and cook, stirring occasionally until lightly
-//             browned, 6 to 8 minutes. Transfer shrimp to a large plate and set aside, leaving chicken
-//             and chorizo in the pan. Add pimentón, bay leaves, garlic, tomatoes, onion, salt and
-//             pepper, and cook, stirring often until thickened and fragrant, about 10 minutes. Add
-//             saffron broth and remaining 4 1/2 cups chicken broth; bring to a boil.
-//           </Typography>
-//           <Typography paragraph>
-//             Add rice and stir very gently to distribute. Top with artichokes and peppers, and cook
-//             without stirring, until most of the liquid is absorbed, 15 to 18 minutes. Reduce heat to
-//             medium-low, add reserved shrimp and mussels, tucking them down into the rice, and cook
-//             again without stirring, until mussels have opened and rice is just tender, 5 to 7
-//             minutes more. (Discard any mussels that don’t open.)
-//           </Typography>
-//           <Typography>
-//             Set aside off of the heat to let rest for 10 minutes, and then serve.
-//           </Typography>
-//         </CardContent>
-//       </Collapse> */}
-// 		</Card>
-// 	);
-// }

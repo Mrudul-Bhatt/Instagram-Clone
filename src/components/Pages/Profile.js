@@ -28,7 +28,9 @@ import {
 	Toolbar,
 	List,
 	ListItemAvatar,
+	ListItemIcon,
 } from '@material-ui/core';
+import { Alert } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useHistory } from 'react-router-dom';
 import * as actions from '../../store/actions/user';
@@ -49,6 +51,8 @@ import {
 	CloudUpload,
 	InsertLink,
 	Close,
+	AddComment,
+	Comment,
 } from '@material-ui/icons';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -56,6 +60,13 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 const useStyles = makeStyles((theme) => ({
+	appBar: {
+		position: 'relative',
+	},
+	title: {
+		marginLeft: theme.spacing(2),
+		flex: 1,
+	},
 	root: {
 		maxWidth: 600,
 		maxHeight: 600,
@@ -117,6 +128,12 @@ const Profile = () => {
 	const [followersData, setFollowersData] = useState([]);
 	// const [FUfClicked, setFUfClicked] = useState(false)
 	const [followingData, setFollowingData] = useState([]);
+
+	const [commentsDialog, setCommentsDialog] = useState(false);
+	const [itemData, setItemData] = useState(null);
+	const [itemId, setItemId] = useState('');
+	const [addCommentDialog, setAddCommentDialog] = useState(false);
+	const [choiceCommentDialog, setChoiceCommentDialog] = useState(false);
 
 	useEffect(() => {
 		if (notifyE) {
@@ -432,6 +449,240 @@ const Profile = () => {
 		);
 	};
 
+	const singlePost = () => {
+		fetch(`${baseUrl}/singlepost`, {
+			method: 'post',
+			headers: {
+				'Content-type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({
+				itemId,
+			}),
+		})
+			.then((res) => res.json())
+			.then((result) => {
+				console.log(result.mypost.comments.length);
+
+				setItemData(result.mypost);
+				setCommentsDialog(true);
+			})
+			.catch((err) => console.log(err));
+	};
+
+	const postComment = (value) => {
+		console.log(value);
+		fetch(`${baseUrl}/comments`, {
+			method: 'put',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({ text: value, postId: itemId }),
+		})
+			.then((res) => res.json())
+			.then((response) => {
+				console.log(response);
+				const newData = data.map((item) => {
+					if (item._id === response.result._id) {
+						return response.result;
+					} else {
+						return item;
+					}
+				});
+				setData(newData);
+				setAddCommentDialog(false);
+				setItemId('');
+				message.success('Comment added');
+			})
+			.catch((error) => {
+				console.log(error);
+				message.error('Server error!');
+			});
+	};
+
+	const PostCommentDialog = () => {
+		const [comment, setComment] = useState('');
+
+		return (
+			<Dialog
+				fullWidth
+				open={addCommentDialog}
+				TransitionComponent={Transition}
+				onClose={() => {
+					setAddCommentDialog(false);
+					setItemId('');
+					setComment('');
+				}}
+				style={{ width: '100%' }}
+			>
+				<DialogTitle id='alert-dialog-slide-title'>
+					{'Post Comment'}
+				</DialogTitle>
+				<DialogContent>
+					<TextField
+						autoFocus
+						margin='dense'
+						id='name'
+						placeholder='Add Comment...'
+						type='text'
+						fullWidth
+						value={comment}
+						onChange={(e) => setComment(e.target.value)}
+					/>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						onClick={() => {
+							setAddCommentDialog(false);
+							setItemId('');
+
+							setComment('');
+						}}
+						color='primary'
+					>
+						Cancel
+					</Button>
+					<Button
+						type='submit'
+						color='primary'
+						onClick={() => postComment(comment)}
+					>
+						Post
+					</Button>
+				</DialogActions>
+			</Dialog>
+		);
+	};
+
+	const ChoiceCommentDialog = () => {
+		return (
+			<Dialog
+				fullWidth
+				open={choiceCommentDialog}
+				TransitionComponent={Transition}
+				keepMounted
+				onClose={() => {
+					setChoiceCommentDialog(false);
+				}}
+				aria-labelledby='alert-dialog-slide-title'
+				aria-describedby='alert-dialog-slide-description'
+				style={{ width: '100%' }}
+			>
+				<DialogContent>
+					<List>
+						<ListItem>
+							<ListItemIcon>
+								<AddComment />
+							</ListItemIcon>
+							<ListItemText
+								primary='Post Comment'
+								onClick={() => {
+									setAddCommentDialog(true);
+									setChoiceCommentDialog(false);
+								}}
+							/>
+						</ListItem>
+						<ListItem>
+							<ListItemIcon>
+								<Comment />
+							</ListItemIcon>
+							<ListItemText
+								primary='All Comments'
+								onClick={() => {
+									singlePost();
+									setChoiceCommentDialog(false);
+								}}
+							/>
+						</ListItem>
+					</List>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						onClick={() => {
+							setChoiceCommentDialog(false);
+						}}
+						color='primary'
+					>
+						Cancel
+					</Button>
+				</DialogActions>
+			</Dialog>
+		);
+	};
+
+	const CommentsDialog = () => {
+		return (
+			<Dialog
+				fullScreen
+				keepMounted
+				open={commentsDialog}
+				onClose={() => {
+					setCommentsDialog(false);
+					setItemId('');
+					setItemData(null);
+				}}
+				TransitionComponent={Transition}
+			>
+				<AppBar className={classes.appBar}>
+					<Toolbar>
+						<IconButton
+							edge='start'
+							color='inherit'
+							onClick={() => {
+								setCommentsDialog(false);
+								setItemId(null);
+								setItemData(null);
+							}}
+							aria-label='close'
+						>
+							<Close />
+						</IconButton>
+						<Typography color='inherit' variant='h6' className={classes.title}>
+							Comments
+						</Typography>
+						<Button
+							autoFocus
+							color='inherit'
+							onClick={() => {
+								setCommentsDialog(false);
+								setItemId(null);
+								setItemData(null);
+							}}
+						>
+							done
+						</Button>
+					</Toolbar>
+				</AppBar>
+				<List>
+					{console.log(itemData)}
+					{itemData && itemData.comments.length === 0 ? (
+						<div className={classes.alert}>
+							<Alert severity='info'>No comments yet on this post!</Alert>
+						</div>
+					) : null}
+					{itemData &&
+						itemData.comments.map((item, index) => {
+							return (
+								<div key={index}>
+									<ListItem button>
+										<ListItemAvatar>
+											<Avatar src={item.postedBy.imageUrl} />
+										</ListItemAvatar>
+										<ListItemText
+											primary={item.postedBy.name}
+											secondary={item.text}
+										/>
+									</ListItem>
+									<Divider />
+								</div>
+							);
+						})}
+				</List>
+			</Dialog>
+		);
+	};
+
 	const FollowersDialog = () => {
 		return (
 			<Dialog
@@ -548,6 +799,9 @@ const Profile = () => {
 
 	return (
 		<div>
+			<CommentsDialog />
+			<PostCommentDialog />
+			<ChoiceCommentDialog />
 			<FollowersDialog />
 			<FollowingDialog />
 			<UpdateImage />
@@ -691,7 +945,13 @@ const Profile = () => {
 											{item.likes.length}
 										</IconButton>
 									)}
-									<IconButton aria-label='share'>
+									<IconButton
+										aria-label='share'
+										onClick={() => {
+											setItemId(item._id);
+											setChoiceCommentDialog(true);
+										}}
+									>
 										<CommentIcon /> {item.comments.length}
 									</IconButton>
 									<IconButton aria-label='show more'>

@@ -51,6 +51,7 @@ import {
 	AirlineSeatLegroomReducedTwoTone,
 } from '@material-ui/icons';
 import { useModal, Modal } from '@zeit-ui/react';
+import Loader from '../../utility/loader';
 
 const useStyles = makeStyles((theme) => ({
 	root: {
@@ -102,13 +103,13 @@ const Explore = () => {
 	const [deleteId, setDeleteId] = useState(null);
 	const [commentsDialog, setCommentsDialog] = useState(false);
 	const [itemData, setItemData] = useState(null);
-	// const [comment, setComment] = useState('');
 	const [itemId, setItemId] = useState('');
 	const [addCommentDialog, setAddCommentDialog] = useState(false);
 	const [choiceCommentDialog, setChoiceCommentDialog] = useState(false);
-	// const [alert, setAlert] = useState(false);
+	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
+		setLoading(true);
 		fetch(`${baseUrl}/allpost`, {
 			headers: {
 				'Content-type': 'application/json',
@@ -120,8 +121,12 @@ const Explore = () => {
 				//console.log(result);
 
 				setData(result.posts);
+				setLoading(false);
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				console.log(err);
+				setLoading(false);
+			});
 	}, []);
 
 	const singlePost = () => {
@@ -261,6 +266,7 @@ const Explore = () => {
 	const ConfirmDelete = () => {
 		return (
 			<Dialog
+				fullWidth
 				open={visible}
 				TransitionComponent={Transition}
 				keepMounted
@@ -505,6 +511,7 @@ const Explore = () => {
 
 	return (
 		<div>
+			{loading && <Loader />}
 			<CommentsDialog />
 			<PostCommentDialog />
 			<ChoiceCommentDialog />
@@ -517,6 +524,8 @@ const Explore = () => {
 								className={classes.root}
 								style={{ marginTop: '30px' }}
 								key={item._id}
+								elevation={0}
+								variant='outlined'
 							>
 								<CardHeader
 									avatar={
@@ -594,14 +603,7 @@ const Explore = () => {
 									>
 										<CommentIcon /> {item.comments.length}
 									</IconButton>
-									<IconButton
-										//   className={clsx(classes.expand, {
-										//     [classes.expandOpen]: expanded,
-										//   })}
-										//   onClick={handleExpandClick}
-										//   aria-expanded={expanded}
-										aria-label='show more'
-									>
+									<IconButton aria-label='show more'>
 										<ExpandMoreIcon />
 									</IconButton>
 								</CardActions>
