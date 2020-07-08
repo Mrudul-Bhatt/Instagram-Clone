@@ -21,7 +21,15 @@ import {
 	DialogContent,
 	DialogContentText,
 	DialogActions,
+	AppBar,
+	Toolbar,
+	List,
+	ListItemAvatar,
+	ListItem,
+	ListItemText,
+	ListItemIcon,
 } from '@material-ui/core';
+import { Alert } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as actions from '../../store/actions/user';
@@ -35,7 +43,13 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { baseUrl } from '../../utility/helper';
 import CommentIcon from '@material-ui/icons/Comment';
-import { DeleteOutline } from '@material-ui/icons';
+import {
+	DeleteOutline,
+	Close,
+	AddComment,
+	Comment,
+	AirlineSeatLegroomReducedTwoTone,
+} from '@material-ui/icons';
 import { useModal, Modal } from '@zeit-ui/react';
 
 const useStyles = makeStyles((theme) => ({
@@ -61,6 +75,19 @@ const useStyles = makeStyles((theme) => ({
 	avatar: {
 		backgroundColor: red[500],
 	},
+	appBar: {
+		position: 'relative',
+	},
+	title: {
+		marginLeft: theme.spacing(2),
+		flex: 1,
+	},
+	alert: {
+		width: '100%',
+		'& > * + *': {
+			marginTop: theme.spacing(2),
+		},
+	},
 }));
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -71,13 +98,15 @@ const Explore = () => {
 	const classes = useStyles();
 	const [visible, setVisible] = useState(false);
 	const [data, setData] = useState([]);
-	const notifyE = useSelector((state) => state.notifyE);
-	const notifyM = useSelector((state) => state.notifyM);
-	const click = useSelector((state) => state.click);
-	const dispatch = useDispatch();
-	const cleanup = () => dispatch(actions.cleanup());
 	const user = JSON.parse(localStorage.getItem('user'));
 	const [deleteId, setDeleteId] = useState(null);
+	const [commentsDialog, setCommentsDialog] = useState(false);
+	const [itemData, setItemData] = useState(null);
+	// const [comment, setComment] = useState('');
+	const [itemId, setItemId] = useState('');
+	const [addCommentDialog, setAddCommentDialog] = useState(false);
+	const [choiceCommentDialog, setChoiceCommentDialog] = useState(false);
+	// const [alert, setAlert] = useState(false);
 
 	useEffect(() => {
 		fetch(`${baseUrl}/allpost`, {
@@ -94,6 +123,29 @@ const Explore = () => {
 			})
 			.catch((err) => console.log(err));
 	}, []);
+
+	const singlePost = () => {
+		fetch(`${baseUrl}/singlepost`, {
+			method: 'post',
+			headers: {
+				'Content-type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({
+				itemId,
+			}),
+		})
+			.then((res) => res.json())
+			.then((result) => {
+				console.log(result.mypost.comments.length);
+				// if (result.mypost.comments.length === 0) {
+				// 	setAlert(true);
+				// }
+				setItemData(result.mypost);
+				setCommentsDialog(true);
+			})
+			.catch((err) => console.log(err));
+	};
 
 	const like = (postId) => {
 		fetch(`${baseUrl}/like`, {
@@ -175,6 +227,37 @@ const Explore = () => {
 			.catch((err) => console.log(err));
 	};
 
+	const postComment = (value) => {
+		console.log(value);
+		fetch(`${baseUrl}/comments`, {
+			method: 'put',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({ text: value, postId: itemId }),
+		})
+			.then((res) => res.json())
+			.then((response) => {
+				console.log(response);
+				const newData = data.map((item) => {
+					if (item._id === response.result._id) {
+						return response.result;
+					} else {
+						return item;
+					}
+				});
+				setData(newData);
+				setAddCommentDialog(false);
+				setItemId('');
+				message.success('Comment added');
+			})
+			.catch((error) => {
+				console.log(error);
+				message.error('Server error!');
+			});
+	};
+
 	const ConfirmDelete = () => {
 		return (
 			<Dialog
@@ -221,10 +304,211 @@ const Explore = () => {
 		);
 	};
 
+	const PostCommentDialog = () => {
+		const [comment, setComment] = useState('');
+
+		return (
+			<Dialog
+				fullWidth
+				open={addCommentDialog}
+				TransitionComponent={Transition}
+				onClose={() => {
+					setAddCommentDialog(false);
+					setItemId('');
+					setComment('');
+				}}
+				// aria-labelledby='alert-dialog-slide-title'
+				// aria-describedby='alert-dialog-slide-description'
+				style={{ width: '100%' }}
+			>
+				<DialogTitle id='alert-dialog-slide-title'>
+					{'Post Comment'}
+				</DialogTitle>
+				<DialogContent>
+					<TextField
+						autoFocus
+						margin='dense'
+						id='name'
+						placeholder='Add Comment...'
+						type='text'
+						fullWidth
+						value={comment}
+						onChange={(e) => setComment(e.target.value)}
+					/>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						onClick={() => {
+							setAddCommentDialog(false);
+							setItemId('');
+
+							setComment('');
+						}}
+						color='primary'
+					>
+						Cancel
+					</Button>
+					<Button
+						type='submit'
+						color='primary'
+						onClick={() => postComment(comment)}
+					>
+						Post
+					</Button>
+				</DialogActions>
+			</Dialog>
+		);
+	};
+
+	const ChoiceCommentDialog = () => {
+		return (
+			<Dialog
+				fullWidth
+				open={choiceCommentDialog}
+				TransitionComponent={Transition}
+				keepMounted
+				onClose={() => {
+					setChoiceCommentDialog(false);
+				}}
+				aria-labelledby='alert-dialog-slide-title'
+				aria-describedby='alert-dialog-slide-description'
+				style={{ width: '100%' }}
+			>
+				{/* <DialogTitle id='alert-dialog-slide-title'>{'Comments'}</DialogTitle> */}
+				<DialogContent>
+					{/* <DialogContentText id='alert-dialog-slide-description'> */}
+					<List>
+						<ListItem>
+							<ListItemIcon>
+								<AddComment />
+							</ListItemIcon>
+							<ListItemText
+								primary='Post Comment'
+								onClick={() => {
+									setAddCommentDialog(true);
+									setChoiceCommentDialog(false);
+								}}
+							/>
+						</ListItem>
+						<ListItem>
+							<ListItemIcon>
+								<Comment />
+							</ListItemIcon>
+							<ListItemText
+								primary='All Comments'
+								onClick={() => {
+									singlePost();
+									setChoiceCommentDialog(false);
+								}}
+							/>
+						</ListItem>
+					</List>
+					{/* </DialogContentText> */}
+				</DialogContent>
+				<DialogActions>
+					<Button
+						onClick={() => {
+							setChoiceCommentDialog(false);
+						}}
+						color='primary'
+					>
+						Cancel
+					</Button>
+					{/* <Button
+						onClick={() => {
+							postComment();
+							setAddCommentDialog(false);
+						}}
+						color='primary'
+					>
+						Post
+					</Button> */}
+				</DialogActions>
+			</Dialog>
+		);
+	};
+
+	const CommentsDialog = () => {
+		return (
+			<Dialog
+				fullScreen
+				keepMounted
+				open={commentsDialog}
+				onClose={() => {
+					setCommentsDialog(false);
+					setItemId('');
+					setItemData(null);
+				}}
+				TransitionComponent={Transition}
+			>
+				<AppBar className={classes.appBar}>
+					<Toolbar>
+						<IconButton
+							edge='start'
+							color='inherit'
+							onClick={() => {
+								setCommentsDialog(false);
+								setItemId(null);
+								setItemData(null);
+							}}
+							aria-label='close'
+						>
+							<Close />
+						</IconButton>
+						<Typography color='inherit' variant='h6' className={classes.title}>
+							Comments
+						</Typography>
+						<Button
+							autoFocus
+							color='inherit'
+							onClick={() => {
+								setCommentsDialog(false);
+								setItemId(null);
+								setItemData(null);
+							}}
+						>
+							done
+						</Button>
+					</Toolbar>
+				</AppBar>
+				<List>
+					{console.log(itemData)}
+					{itemData && itemData.comments.length === 0 ? (
+						<div className={classes.alert}>
+							<Alert severity='info'>No comments yet on this post!</Alert>
+						</div>
+					) : null}
+					{itemData &&
+						itemData.comments.map((item, index) => {
+							return (
+								<div key={index}>
+									<ListItem button>
+										<ListItemAvatar>
+											<Avatar src={item.postedBy.imageUrl} />
+										</ListItemAvatar>
+										<ListItemText
+											primary={item.postedBy.name}
+											secondary={item.text}
+											// onClick={() => {
+											// 	history.push(`/user/${item._id}`);
+											// }}
+										/>
+									</ListItem>
+									<Divider />
+								</div>
+							);
+						})}
+				</List>
+			</Dialog>
+		);
+	};
+
 	return (
 		<div>
+			<CommentsDialog />
+			<PostCommentDialog />
+			<ChoiceCommentDialog />
 			<ConfirmDelete />
-
 			<Container component='main' maxWidth='sm'>
 				{data &&
 					data.map((item) => {
@@ -301,7 +585,13 @@ const Explore = () => {
 											{item.likes.length}
 										</IconButton>
 									)}
-									<IconButton aria-label='share'>
+									<IconButton
+										aria-label='share'
+										onClick={() => {
+											setItemId(item._id);
+											setChoiceCommentDialog(true);
+										}}
+									>
 										<CommentIcon /> {item.comments.length}
 									</IconButton>
 									<IconButton
@@ -324,129 +614,3 @@ const Explore = () => {
 };
 
 export default Explore;
-
-// import React from 'react';
-// import { makeStyles } from '@material-ui/core/styles';
-// import clsx from 'clsx';
-// import Card from '@material-ui/core/Card';
-// import CardHeader from '@material-ui/core/CardHeader';
-// import CardMedia from '@material-ui/core/CardMedia';
-// import CardContent from '@material-ui/core/CardContent';
-// import CardActions from '@material-ui/core/CardActions';
-// import Collapse from '@material-ui/core/Collapse';
-// import Avatar from '@material-ui/core/Avatar';
-// import IconButton from '@material-ui/core/IconButton';
-// import Typography from '@material-ui/core/Typography';
-// import { red } from '@material-ui/core/colors';
-// import FavoriteIcon from '@material-ui/icons/Favorite';
-// import ShareIcon from '@material-ui/icons/Share';
-// import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-// import MoreVertIcon from '@material-ui/icons/MoreVert';
-
-// const useStyles = makeStyles((theme) => ({
-// 	root: {
-// 		maxWidth: 345,
-// 	},
-// 	media: {
-// 		height: 0,
-// 		paddingTop: '56.25%', // 16:9
-// 	},
-// 	expand: {
-// 		transform: 'rotate(0deg)',
-// 		marginLeft: 'auto',
-// 		transition: theme.transitions.create('transform', {
-// 			duration: theme.transitions.duration.shortest,
-// 		}),
-// 	},
-// 	expandOpen: {
-// 		transform: 'rotate(180deg)',
-// 	},
-// 	avatar: {
-// 		backgroundColor: red[500],
-// 	},
-// }));
-
-// export default function RecipeReviewCard() {
-// 	const classes = useStyles();
-// 	//const [expanded, setExpanded] = React.useState(false);
-
-// 	//   const handleExpandClick = () => {
-// 	//     setExpanded(!expanded);
-// 	//   };
-
-// 	return (
-// 		<Card className={classes.root}>
-// 			<CardHeader
-// 				avatar={
-// 					<Avatar aria-label='recipe' className={classes.avatar}>
-// 						R
-// 					</Avatar>
-// 				}
-// 				action={
-// 					<IconButton aria-label='settings'>
-// 						<MoreVertIcon />
-// 					</IconButton>
-// 				}
-// 				title='Shrimp and Chorizo Paella'
-// 				subheader='September 14, 2016'
-// 			/>
-// 			<CardMedia
-// 				className={classes.media}
-// 				image='/static/images/cards/paella.jpg'
-// 				title='Paella dish'
-// 			/>
-// 			<CardContent>
-// 				<Typography variant='body2' color='textSecondary' component='p'>
-// 					This impressive paella is a perfect party dish and a fun meal to cook
-// 					together with your guests. Add 1 cup of frozen peas along with the
-// 					mussels, if you like.
-// 				</Typography>
-// 			</CardContent>
-// 			<CardActions disableSpacing>
-// 				<IconButton aria-label='add to favorites'>
-// 					<FavoriteIcon />
-// 				</IconButton>
-// 				<IconButton aria-label='share'>
-// 					<ShareIcon />
-// 				</IconButton>
-// 				<IconButton
-// 					//   className={clsx(classes.expand, {
-// 					//     [classes.expandOpen]: expanded,
-// 					//   })}
-// 					//   onClick={handleExpandClick}
-// 					//   aria-expanded={expanded}
-// 					aria-label='show more'
-// 				>
-// 					<ExpandMoreIcon />
-// 				</IconButton>
-// 			</CardActions>
-// 			{/* <Collapse in={expanded} timeout="auto" unmountOnExit>
-//         <CardContent>
-//           <Typography paragraph>Method:</Typography>
-//           <Typography paragraph>
-//             Heat 1/2 cup of the broth in a pot until simmering, add saffron and set aside for 10
-//             minutes.
-//           </Typography>
-//           <Typography paragraph>
-//             Heat oil in a (14- to 16-inch) paella pan or a large, deep skillet over medium-high
-//             heat. Add chicken, shrimp and chorizo, and cook, stirring occasionally until lightly
-//             browned, 6 to 8 minutes. Transfer shrimp to a large plate and set aside, leaving chicken
-//             and chorizo in the pan. Add pimentón, bay leaves, garlic, tomatoes, onion, salt and
-//             pepper, and cook, stirring often until thickened and fragrant, about 10 minutes. Add
-//             saffron broth and remaining 4 1/2 cups chicken broth; bring to a boil.
-//           </Typography>
-//           <Typography paragraph>
-//             Add rice and stir very gently to distribute. Top with artichokes and peppers, and cook
-//             without stirring, until most of the liquid is absorbed, 15 to 18 minutes. Reduce heat to
-//             medium-low, add reserved shrimp and mussels, tucking them down into the rice, and cook
-//             again without stirring, until mussels have opened and rice is just tender, 5 to 7
-//             minutes more. (Discard any mussels that don’t open.)
-//           </Typography>
-//           <Typography>
-//             Set aside off of the heat to let rest for 10 minutes, and then serve.
-//           </Typography>
-//         </CardContent>
-//       </Collapse> */}
-// 		</Card>
-// 	);
-// }
