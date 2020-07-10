@@ -1,49 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
-	Avatar,
-	TextField,
-	Grid,
-	Box,
-	Typography,
-	Button,
 	Container,
 	LinearProgress,
 	Divider,
 	Card,
 	CardHeader,
-	CardMedia,
 	CardContent,
-	CardActions,
-	IconButton,
-	Dialog,
-	Slide,
-	DialogTitle,
-	DialogContent,
-	DialogContentText,
-	DialogActions,
-	AppBar,
-	Toolbar,
-	List,
-	ListItemAvatar,
-	ListItem,
-	ListItemText,
-	ListItemIcon,
 } from '@material-ui/core';
 import { Alert, Skeleton } from '@material-ui/lab';
-import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
-import * as actions from '../../store/actions/user';
 // import M from 'materialize-css';
-import { message, Space } from 'antd';
 import { makeStyles } from '@material-ui/core/styles';
-import { red } from '@material-ui/core/colors';
-import FavoriteIcon from '@material-ui/icons/Favorite';
-import ShareIcon from '@material-ui/icons/Share';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import { baseUrl } from '../../utility/helper';
-import CommentIcon from '@material-ui/icons/Comment';
-import { DeleteOutline, Close, AddComment, Comment } from '@material-ui/icons';
+import { red, grey } from '@material-ui/core/colors/';
+import { ViewModule } from '@material-ui/icons';
 
 const useStyles = makeStyles((theme) => ({
 	appBar: {
@@ -55,6 +23,10 @@ const useStyles = makeStyles((theme) => ({
 	},
 	root: {
 		maxWidth: 600,
+		maxHeight: 600,
+	},
+	rootUp: {
+		maxWidth: 800,
 		maxHeight: 600,
 	},
 	media: {
@@ -73,11 +45,18 @@ const useStyles = makeStyles((theme) => ({
 		transform: 'rotate(180deg)',
 	},
 	avatar: {
-		backgroundColor: red[500],
+		backgroundColor: grey[500],
+	},
+	appBar: {
+		position: 'relative',
+	},
+	title: {
+		marginLeft: theme.spacing(2),
+		flex: 1,
 	},
 }));
 
-export default Loader = () => {
+export const Loader = () => {
 	const classes = useStyles();
 	const array = [1, 2, 3, 4, 5];
 	return (
@@ -128,6 +107,45 @@ export default Loader = () => {
 					</Card>
 				);
 			})}
+		</Container>
+	);
+};
+
+export const LoaderProfile = () => {
+	const classes = useStyles();
+	return (
+		<Container component='main' maxWidth='sm'>
+			<Card
+				className={classes.rootUp}
+				style={{ marginTop: '30px' }}
+				elevation={0}
+			>
+				<CardHeader
+					avatar={
+						<Skeleton
+							animation='wave'
+							variant='circle'
+							width={100}
+							height={100}
+							className={classes.avatar}
+						/>
+					}
+					title={
+						<Skeleton
+							animation='wave'
+							height={10}
+							width='80%'
+							style={{ marginBottom: 6 }}
+						/>
+					}
+					subheader={<Skeleton animation='wave' height={10} width='40%' />}
+				/>
+
+				<CardContent>
+					<Skeleton animation='wave' height={10} style={{ marginBottom: 6 }} />
+					<Skeleton animation='wave' height={10} width='80%' />
+				</CardContent>
+			</Card>
 		</Container>
 	);
 };

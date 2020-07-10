@@ -37,7 +37,7 @@ import * as actions from '../../store/actions/user';
 // import M from 'materialize-css';
 import { message, Space } from 'antd';
 import { makeStyles } from '@material-ui/core/styles';
-import { red } from '@material-ui/core/colors';
+import { red, grey } from '@material-ui/core/colors';
 import FavoriteIcon from '@material-ui/icons/Favorite';
 import ShareIcon from '@material-ui/icons/Share';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
@@ -52,7 +52,10 @@ import {
 	Close,
 	AddComment,
 	Comment,
+	Bookmark,
+	MoreVert,
 } from '@material-ui/icons';
+import { Loader, LoaderProfile } from '../../utility/loader';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
 	return <Slide direction='up' ref={ref} {...props} />;
@@ -83,10 +86,11 @@ const useStyles = makeStyles((theme) => ({
 		transform: 'rotate(180deg)',
 	},
 	avatar: {
-		backgroundColor: red[500],
+		backgroundColor: grey[500],
 	},
 	avatar2: {
-		backgroundColor: red[500],
+		backgroundColor: grey[500],
+
 		width: theme.spacing(14),
 		height: theme.spacing(14),
 	},
@@ -109,7 +113,7 @@ const User = () => {
 	const dispatch = useDispatch();
 	const user = JSON.parse(localStorage.getItem('user'));
 	const history = useHistory();
-	const [loader, setLoader] = useState(false);
+	const [loading, setLoading] = useState(false);
 
 	const [userProfile, setProfile] = useState(null);
 	const { userId } = useParams();
@@ -125,6 +129,10 @@ const User = () => {
 	const [itemId, setItemId] = useState('');
 	const [addCommentDialog, setAddCommentDialog] = useState(false);
 	const [choiceCommentDialog, setChoiceCommentDialog] = useState(false);
+
+	const [choiceVertDialog, setChoiceVertDialog] = useState(false);
+	const [displayText, setDisplayText] = useState('');
+	const [vertItemId, setVertItemId] = useState('');
 
 	const like = (postId) => {
 		fetch(`${baseUrl}/like`, {
@@ -179,6 +187,7 @@ const User = () => {
 	};
 
 	useEffect(() => {
+		setLoading(true);
 		fetch(`${baseUrl}/user/${userId}`, {
 			headers: {
 				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
@@ -189,9 +198,11 @@ const User = () => {
 				console.log(result);
 				setProfile(result.user);
 				setData(result.posts);
+				setLoading(false);
 			})
 			.catch((error) => {
 				console.log(error);
+				setLoading(false);
 			});
 	}, [userId]);
 
@@ -312,6 +323,15 @@ const User = () => {
 					</Toolbar>
 				</AppBar>
 				<List>
+					{followersData && followersData.length === 0 ? (
+						<Alert
+							style={{ marginTop: '20px', width: '100%' }}
+							severity='info'
+							variant='outlined'
+						>
+							This account has no followers
+						</Alert>
+					) : null}
 					{followersData &&
 						followersData.map((item) => {
 							return (
@@ -373,6 +393,15 @@ const User = () => {
 					</Toolbar>
 				</AppBar>
 				<List>
+					{followingData && followingData.length === 0 ? (
+						<Alert
+							style={{ marginTop: '20px', width: '100%' }}
+							severity='info'
+							variant='outlined'
+						>
+							This account follows no one
+						</Alert>
+					) : null}
 					{followingData &&
 						followingData.map((item) => {
 							return (
@@ -637,8 +666,116 @@ const User = () => {
 		);
 	};
 
+	const postCollectionT = () => {
+		fetch(`${baseUrl}/postcollectionT`, {
+			method: 'put',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({ postId: vertItemId }),
+		})
+			.then((res) => res.json())
+			.then((response) => {
+				console.log(response);
+				const newData = data.map((item) => {
+					if (item._id === response._id) {
+						return response;
+					} else {
+						return item;
+					}
+				});
+				setData(newData);
+				setVertItemId('');
+				setDisplayText('');
+				message.success('Saved to collection!');
+			})
+			.catch((error) => {
+				console.log(error);
+				message.error('Server error!');
+			});
+	};
+
+	const postCollectionF = () => {
+		fetch(`${baseUrl}/postcollectionF`, {
+			method: 'put',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({ postId: vertItemId }),
+		})
+			.then((res) => res.json())
+			.then((response) => {
+				console.log(response);
+				const newData = data.map((item) => {
+					if (item._id === response._id) {
+						return response;
+					} else {
+						return item;
+					}
+				});
+				setData(newData);
+				setVertItemId('');
+				setDisplayText('');
+				message.success('Removed from collection!');
+			})
+			.catch((error) => {
+				console.log(error);
+				message.error('Server error!');
+			});
+	};
+
+	const ChoiceVertDialog = () => {
+		return (
+			<Dialog
+				fullWidth
+				open={choiceVertDialog}
+				TransitionComponent={Transition}
+				keepMounted
+				onClose={() => {
+					setChoiceVertDialog(false);
+				}}
+			>
+				<DialogContent>
+					<List>
+						<ListItem button>
+							<ListItemIcon>
+								<Bookmark />
+							</ListItemIcon>
+							<ListItemText
+								primary={displayText}
+								onClick={() => {
+									displayText === 'Unsave Post'
+										? postCollectionF()
+										: postCollectionT();
+									setChoiceVertDialog(false);
+								}}
+							/>
+						</ListItem>
+
+						<ListItem button>
+							<ListItemIcon>
+								<Close />
+							</ListItemIcon>
+							<ListItemText
+								primary='Close'
+								onClick={() => {
+									setChoiceVertDialog(false);
+								}}
+							/>
+						</ListItem>
+					</List>
+				</DialogContent>
+			</Dialog>
+		);
+	};
+
 	return (
 		<div>
+			{loading && <LoaderProfile />}
+			{loading && <Loader />}
+			<ChoiceVertDialog />
 			<PostCommentDialog />
 			<ChoiceCommentDialog />
 			<CommentsDialog />
@@ -661,11 +798,6 @@ const User = () => {
 								}
 								className={classes.avatar2}
 							></Avatar>
-						}
-						action={
-							<IconButton aria-label='settings'>
-								<AddPhotoAlternate />
-							</IconButton>
 						}
 						title={<h1>{userProfile && userProfile.name}</h1>}
 						subheader={<h2>{userProfile && userProfile.email}</h2>}
@@ -763,17 +895,31 @@ const User = () => {
 											src={item.postedBy.imageUrl}
 										></Avatar>
 									}
-									// action={
-									// 	<IconButton
-									// 		onClick={() => {
-									// 			setDeleteModal(true);
-									// 			setDeleteId(item._id);
-									// 		}}
-									// 		aria-label='settings'
-									// 	>
-									// 		<DeleteOutline style={{ color: 'red' }} />
-									// 	</IconButton>
-									// }
+									action={
+										// <IconButton
+										// 	onClick={() => {
+										// 		setDeleteModal(true);
+										// 		setDeleteId(item._id);
+										// 	}}
+										// 	aria-label='settings'
+										// >
+										// 	<DeleteOutline style={{ color: 'red' }} />
+										// </IconButton>
+										<IconButton
+											onClick={() => {
+												var text;
+												text = item.postCollection.includes(user._id)
+													? 'Unsave Post'
+													: 'Save Post';
+												// item.postedBy._id === user._id && setDelete(true);
+												setDisplayText(text);
+												setVertItemId(item._id);
+												setChoiceVertDialog(true);
+											}}
+										>
+											<MoreVert />
+										</IconButton>
+									}
 									title={item.postedBy.name}
 									subheader='September 14, 2016'
 								/>

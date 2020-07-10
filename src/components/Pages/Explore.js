@@ -36,7 +36,7 @@ import * as actions from '../../store/actions/user';
 // import M from 'materialize-css';
 import { message, Space } from 'antd';
 import { makeStyles } from '@material-ui/core/styles';
-import { red } from '@material-ui/core/colors';
+import { red, grey } from '@material-ui/core/colors';
 import FavoriteIcon from '@material-ui/icons/Favorite';
 import ShareIcon from '@material-ui/icons/Share';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
@@ -49,9 +49,12 @@ import {
 	AddComment,
 	Comment,
 	AirlineSeatLegroomReducedTwoTone,
+	MoreVert,
+	Delete,
+	Bookmark,
 } from '@material-ui/icons';
 import { useModal, Modal } from '@zeit-ui/react';
-import Loader from '../../utility/loader';
+import { Loader } from '../../utility/loader';
 
 const useStyles = makeStyles((theme) => ({
 	root: {
@@ -74,7 +77,7 @@ const useStyles = makeStyles((theme) => ({
 		transform: 'rotate(180deg)',
 	},
 	avatar: {
-		backgroundColor: red[500],
+		backgroundColor: grey[500],
 	},
 	appBar: {
 		position: 'relative',
@@ -100,13 +103,17 @@ const Explore = () => {
 	const [visible, setVisible] = useState(false);
 	const [data, setData] = useState([]);
 	const user = JSON.parse(localStorage.getItem('user'));
-	const [deleteId, setDeleteId] = useState(null);
+	const [del, setDelete] = useState(false);
 	const [commentsDialog, setCommentsDialog] = useState(false);
 	const [itemData, setItemData] = useState(null);
 	const [itemId, setItemId] = useState('');
 	const [addCommentDialog, setAddCommentDialog] = useState(false);
 	const [choiceCommentDialog, setChoiceCommentDialog] = useState(false);
 	const [loading, setLoading] = useState(false);
+
+	const [choiceVertDialog, setChoiceVertDialog] = useState(false);
+	const [displayText, setDisplayText] = useState('');
+	const [vertItemId, setVertItemId] = useState('');
 
 	useEffect(() => {
 		setLoading(true);
@@ -143,9 +150,7 @@ const Explore = () => {
 			.then((res) => res.json())
 			.then((result) => {
 				console.log(result.mypost.comments.length);
-				// if (result.mypost.comments.length === 0) {
-				// 	setAlert(true);
-				// }
+
 				setItemData(result.mypost);
 				setCommentsDialog(true);
 			})
@@ -186,7 +191,7 @@ const Explore = () => {
 				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
 			},
 			body: JSON.stringify({
-				postId: deleteId,
+				postId: vertItemId,
 			}),
 		})
 			.then((res) => res.json())
@@ -199,8 +204,10 @@ const Explore = () => {
 						}
 					});
 					setData(newData);
+					setVertItemId('');
+					setDisplayText('');
 					message.success(value.message);
-					setDeleteId(null);
+					setDelete(false);
 				}
 			})
 			.catch((err) => console.log(err));
@@ -263,51 +270,108 @@ const Explore = () => {
 			});
 	};
 
-	const ConfirmDelete = () => {
-		return (
-			<Dialog
-				fullWidth
-				open={visible}
-				TransitionComponent={Transition}
-				keepMounted
-				onClose={() => {
-					setVisible(false);
-					setDeleteId(null);
-				}}
-				aria-labelledby='alert-dialog-slide-title'
-				aria-describedby='alert-dialog-slide-description'
-				style={{ width: '100%' }}
-			>
-				<DialogTitle id='alert-dialog-slide-title'>
-					{'Delete this post?'}
-				</DialogTitle>
-				<DialogContent>
-					<DialogContentText id='alert-dialog-slide-description'>
-						This action cannot be undone!
-					</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button
-						onClick={() => {
-							setVisible(false);
-							setDeleteId(null);
-						}}
-						color='secondary'
-					>
-						Cancel
-					</Button>
-					<Button
-						onClick={() => {
-							deletePost();
-							setVisible(false);
-						}}
-						color='primary'
-					>
-						Delete
-					</Button>
-				</DialogActions>
-			</Dialog>
-		);
+	// const ConfirmDelete = () => {
+	// 	return (
+	// 		<Dialog
+	// 			fullWidth
+	// 			open={visible}
+	// 			TransitionComponent={Transition}
+	// 			keepMounted
+	// 			onClose={() => {
+	// 				setVisible(false);
+	// 				setDeleteId(null);
+	// 			}}
+	// 		>
+	// 			<DialogTitle id='alert-dialog-slide-title'>
+	// 				{'Delete this post?'}
+	// 			</DialogTitle>
+	// 			<DialogContent>
+	// 				<DialogContentText id='alert-dialog-slide-description'>
+	// 					This action cannot be undone!
+	// 				</DialogContentText>
+	// 			</DialogContent>
+	// 			<DialogActions>
+	// 				<Button
+	// 					onClick={() => {
+	// 						setVisible(false);
+	// 						setDeleteId(null);
+	// 					}}
+	// 					color='secondary'
+	// 				>
+	// 					Cancel
+	// 				</Button>
+	// 				<Button
+	// 					onClick={() => {
+	// 						deletePost();
+	// 						setVisible(false);
+	// 					}}
+	// 					color='primary'
+	// 				>
+	// 					Delete
+	// 				</Button>
+	// 			</DialogActions>
+	// 		</Dialog>
+	// 	);
+	// };
+
+	const postCollectionT = () => {
+		fetch(`${baseUrl}/postcollectionT`, {
+			method: 'put',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({ postId: vertItemId }),
+		})
+			.then((res) => res.json())
+			.then((response) => {
+				console.log(response);
+				const newData = data.map((item) => {
+					if (item._id === response._id) {
+						return response;
+					} else {
+						return item;
+					}
+				});
+				setData(newData);
+				setVertItemId('');
+				setDisplayText('');
+				message.success('Saved to collection!');
+			})
+			.catch((error) => {
+				console.log(error);
+				message.error('Server error!');
+			});
+	};
+
+	const postCollectionF = () => {
+		fetch(`${baseUrl}/postcollectionF`, {
+			method: 'put',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({ postId: vertItemId }),
+		})
+			.then((res) => res.json())
+			.then((response) => {
+				console.log(response);
+				const newData = data.map((item) => {
+					if (item._id === response._id) {
+						return response;
+					} else {
+						return item;
+					}
+				});
+				setData(newData);
+				setVertItemId('');
+				setDisplayText('');
+				message.success('Removed from collection!');
+			})
+			.catch((error) => {
+				console.log(error);
+				message.error('Server error!');
+			});
 	};
 
 	const PostCommentDialog = () => {
@@ -509,13 +573,71 @@ const Explore = () => {
 		);
 	};
 
+	const ChoiceVertDialog = () => {
+		return (
+			<Dialog
+				fullWidth
+				open={choiceVertDialog}
+				TransitionComponent={Transition}
+				keepMounted
+				onClose={() => {
+					setChoiceVertDialog(false);
+				}}
+			>
+				<DialogContent>
+					<List>
+						<ListItem button>
+							<ListItemIcon>
+								<Bookmark />
+							</ListItemIcon>
+							<ListItemText
+								primary={displayText}
+								onClick={() => {
+									displayText === 'Unsave Post'
+										? postCollectionF()
+										: postCollectionT();
+									setChoiceVertDialog(false);
+								}}
+							/>
+						</ListItem>
+						{del && (
+							<ListItem button>
+								<ListItemIcon>
+									<Delete />
+								</ListItemIcon>
+								<ListItemText
+									primary='Delete Post'
+									onClick={() => {
+										deletePost();
+										setChoiceVertDialog(false);
+									}}
+								/>
+							</ListItem>
+						)}
+						<ListItem button>
+							<ListItemIcon>
+								<Close />
+							</ListItemIcon>
+							<ListItemText
+								primary='Close'
+								onClick={() => {
+									setChoiceVertDialog(false);
+								}}
+							/>
+						</ListItem>
+					</List>
+				</DialogContent>
+			</Dialog>
+		);
+	};
+
 	return (
 		<div>
 			{loading && <Loader />}
 			<CommentsDialog />
+			<ChoiceVertDialog />
 			<PostCommentDialog />
 			<ChoiceCommentDialog />
-			<ConfirmDelete />
 			<Container component='main' maxWidth='sm'>
 				{data &&
 					data.map((item) => {
@@ -547,17 +669,20 @@ const Explore = () => {
 										</Link>
 									}
 									action={
-										item.postedBy._id === user._id && (
-											<IconButton
-												aria-label='settings'
-												onClick={() => {
-													setVisible(true);
-													setDeleteId(item._id);
-												}}
-											>
-												<DeleteOutline style={{ color: 'red' }} />
-											</IconButton>
-										)
+										<IconButton
+											onClick={() => {
+												var text;
+												text = item.postCollection.includes(user._id)
+													? 'Unsave Post'
+													: 'Save Post';
+												item.postedBy._id === user._id && setDelete(true);
+												setDisplayText(text);
+												setVertItemId(item._id);
+												setChoiceVertDialog(true);
+											}}
+										>
+											<MoreVert />
+										</IconButton>
 									}
 									title={item.postedBy.name}
 									subheader='September 14, 2016'

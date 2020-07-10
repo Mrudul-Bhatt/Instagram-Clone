@@ -30,6 +30,7 @@ import {
 	Close,
 	CloudUpload,
 	InsertLink,
+	Collections,
 } from '@material-ui/icons';
 import MenuIcon from '@material-ui/icons/Menu';
 import { ExitToApp } from '@material-ui/icons';
@@ -221,6 +222,25 @@ export default function NavBar() {
 						onClick={() => {
 							history.push('/explore');
 							setActiveNav(3);
+						}}
+					/>
+				</ListItem>
+			</List>
+			<List>
+				<ListItem button selected={activeNav === 4}>
+					<ListItemIcon
+						onClick={() => {
+							history.push('/collections');
+							setActiveNav(4);
+						}}
+					>
+						<Collections />
+					</ListItemIcon>
+					<ListItemText
+						primary={'Collections'}
+						onClick={() => {
+							history.push('/collections');
+							setActiveNav(4);
 						}}
 					/>
 				</ListItem>

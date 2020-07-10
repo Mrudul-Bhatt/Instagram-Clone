@@ -36,6 +36,7 @@ import Explore from './components/Pages/Explore';
 import AddPost from './components/Pages/AddPost';
 import Profile from './components/Pages/Profile';
 import User from './components/Pages/User';
+import Collections from './components/Pages/Collections';
 
 const App = () => {
 	const history = useHistory();
@@ -66,6 +67,7 @@ const App = () => {
 				<Route path='/addpost' exact component={AddPost} />
 				<Route path='/profile' exact component={Profile} />
 				<Route path='/user/:userId' exact component={User} />
+				<Route path='/collections' exact component={Collections} />
 				{/* <Route path='/addnote' exact component={AddNote} />
 				<Route path='/favnotes' exact component={FavNotes} />
 				<Route path='/singlenote/:noteId' exact component={SingleNote} />

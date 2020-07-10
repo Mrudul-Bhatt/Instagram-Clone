@@ -28,23 +28,31 @@ import {
 	ListItem,
 	ListItemText,
 	ListItemIcon,
+	Menu,
+	MenuItem,
 } from '@material-ui/core';
-import { Alert, Skeleton } from '@material-ui/lab';
+import { Alert, Skeleton, AlertTitle } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as actions from '../../store/actions/user';
 // import M from 'materialize-css';
 import { message, Space } from 'antd';
 import { makeStyles } from '@material-ui/core/styles';
-import { red } from '@material-ui/core/colors';
+import { red, grey } from '@material-ui/core/colors';
 import FavoriteIcon from '@material-ui/icons/Favorite';
 import ShareIcon from '@material-ui/icons/Share';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { baseUrl } from '../../utility/helper';
 import CommentIcon from '@material-ui/icons/Comment';
-import { DeleteOutline, Close, AddComment, Comment } from '@material-ui/icons';
-import Loader from '../../utility/loader';
+import {
+	DeleteOutline,
+	Close,
+	AddComment,
+	Comment,
+	Bookmark,
+	MoreVert,
+} from '@material-ui/icons';
+import { Loader } from '../../utility/loader';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
 	return <Slide direction='up' ref={ref} {...props} />;
@@ -78,7 +86,13 @@ const useStyles = makeStyles((theme) => ({
 		transform: 'rotate(180deg)',
 	},
 	avatar: {
-		backgroundColor: red[500],
+		backgroundColor: grey[500],
+	},
+	alert: {
+		width: '100%',
+		'& > * + *': {
+			marginTop: theme.spacing(4),
+		},
 	},
 }));
 
@@ -97,6 +111,9 @@ const Home = () => {
 	const [itemId, setItemId] = useState('');
 	const [addCommentDialog, setAddCommentDialog] = useState(false);
 	const [choiceCommentDialog, setChoiceCommentDialog] = useState(false);
+	const [choiceVertDialog, setChoiceVertDialog] = useState(false);
+	const [displayText, setDisplayText] = useState('');
+	const [vertItemId, setVertItemId] = useState('');
 
 	useEffect(() => {
 		if (notifyE) {
@@ -237,6 +254,66 @@ const Home = () => {
 			});
 	};
 
+	const postCollectionT = () => {
+		fetch(`${baseUrl}/postcollectionT`, {
+			method: 'put',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({ postId: vertItemId }),
+		})
+			.then((res) => res.json())
+			.then((response) => {
+				console.log(response);
+				const newData = data.map((item) => {
+					if (item._id === response._id) {
+						return response;
+					} else {
+						return item;
+					}
+				});
+				setData(newData);
+				setVertItemId('');
+				setDisplayText('');
+				message.success('Saved to collection!');
+			})
+			.catch((error) => {
+				console.log(error);
+				message.error('Server error!');
+			});
+	};
+
+	const postCollectionF = (id) => {
+		fetch(`${baseUrl}/postcollectionF`, {
+			method: 'put',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({ postId: vertItemId }),
+		})
+			.then((res) => res.json())
+			.then((response) => {
+				console.log(response);
+				const newData = data.map((item) => {
+					if (item._id === response._id) {
+						return response;
+					} else {
+						return item;
+					}
+				});
+				setData(newData);
+				setVertItemId('');
+				setDisplayText('');
+				message.success('Removed from collection!');
+			})
+			.catch((error) => {
+				console.log(error);
+				message.error('Server error!');
+			});
+	};
+
 	const PostCommentDialog = () => {
 		const [comment, setComment] = useState('');
 
@@ -301,8 +378,6 @@ const Home = () => {
 				onClose={() => {
 					setChoiceCommentDialog(false);
 				}}
-				aria-labelledby='alert-dialog-slide-title'
-				aria-describedby='alert-dialog-slide-description'
 				style={{ width: '100%' }}
 			>
 				<DialogContent>
@@ -319,6 +394,7 @@ const Home = () => {
 								}}
 							/>
 						</ListItem>
+
 						<ListItem>
 							<ListItemIcon>
 								<Comment />
@@ -343,6 +419,50 @@ const Home = () => {
 						Cancel
 					</Button>
 				</DialogActions>
+			</Dialog>
+		);
+	};
+
+	const ChoiceVertDialog = () => {
+		return (
+			<Dialog
+				fullWidth
+				open={choiceVertDialog}
+				TransitionComponent={Transition}
+				keepMounted
+				onClose={() => {
+					setChoiceVertDialog(false);
+				}}
+			>
+				<DialogContent>
+					<List>
+						<ListItem button>
+							<ListItemIcon>
+								<Bookmark />
+							</ListItemIcon>
+							<ListItemText
+								primary={displayText}
+								onClick={() => {
+									displayText === 'Unsave Post'
+										? postCollectionF()
+										: postCollectionT();
+									setChoiceVertDialog(false);
+								}}
+							/>
+						</ListItem>
+						<ListItem button>
+							<ListItemIcon>
+								<Close />
+							</ListItemIcon>
+							<ListItemText
+								primary='Close'
+								onClick={() => {
+									setChoiceVertDialog(false);
+								}}
+							/>
+						</ListItem>
+					</List>
+				</DialogContent>
 			</Dialog>
 		);
 	};
@@ -419,69 +539,23 @@ const Home = () => {
 		);
 	};
 
-	// const Loader = () => {
-	// 	const array = [1, 2, 3, 4, 5];
-	// 	return (
-	// 		<Container component='main' maxWidth='sm'>
-	// 			{array.map((item, index) => {
-	// 				return (
-	// 					<Card
-	// 						className={classes.root}
-	// 						style={{ marginTop: '30px' }}
-	// 						key={index}
-	// 						elevation={0}
-	// 						variant='outlined'
-	// 					>
-	// 						<CardHeader
-	// 							avatar={
-	// 								<Skeleton
-	// 									animation='wave'
-	// 									variant='circle'
-	// 									width={40}
-	// 									height={40}
-	// 								/>
-	// 							}
-	// 							title={
-	// 								<Skeleton
-	// 									animation='wave'
-	// 									height={10}
-	// 									width='80%'
-	// 									style={{ marginBottom: 6 }}
-	// 								/>
-	// 							}
-	// 							subheader={
-	// 								<Skeleton animation='wave' height={10} width='40%' />
-	// 							}
-	// 						/>
-
-	// 						<Skeleton
-	// 							animation='wave'
-	// 							variant='rect'
-	// 							className={classes.media}
-	// 						/>
-
-	// 						<CardContent>
-	// 							<Skeleton
-	// 								animation='wave'
-	// 								height={10}
-	// 								style={{ marginBottom: 6 }}
-	// 							/>
-	// 							<Skeleton animation='wave' height={10} width='80%' />
-	// 						</CardContent>
-	// 					</Card>
-	// 				);
-	// 			})}
-	// 		</Container>
-	// 	);
-	// };
-
 	return (
 		<div>
 			{loading && <Loader />}
+			<ChoiceVertDialog />
 			<PostCommentDialog />
 			<ChoiceCommentDialog />
 			<CommentsDialog />
 			<Container component='main' maxWidth='sm'>
+				{data && data.length === 0 ? (
+					<Alert
+						style={{ marginTop: '20px', width: '100%' }}
+						severity='info'
+						variant='outlined'
+					>
+						Follow people to see their posts
+					</Alert>
+				) : null}
 				{data &&
 					data.map((item) => {
 						return (
@@ -513,8 +587,20 @@ const Home = () => {
 										</Link>
 									}
 									action={
-										<IconButton aria-label='settings'>
-											<MoreVertIcon />
+										<IconButton
+											aria-controls='simple-menu'
+											aria-haspopup='true'
+											onClick={() => {
+												var text;
+												text = item.postCollection.includes(user._id)
+													? 'Unsave Post'
+													: 'Save Post';
+												setDisplayText(text);
+												setVertItemId(item._id);
+												setChoiceVertDialog(true);
+											}}
+										>
+											<MoreVert />
 										</IconButton>
 									}
 									title={item.postedBy.name}
@@ -561,9 +647,15 @@ const Home = () => {
 									>
 										<CommentIcon /> {item.comments.length}
 									</IconButton>
-									<IconButton aria-label='show more'>
-										<ExpandMoreIcon />
-									</IconButton>
+									{/* {item.postCollection.includes(user._id) ? (
+										<IconButton onClick={() => postCollectionF(item._id)}>
+											<Bookmark style={{ color: 'black' }} />
+										</IconButton>
+									) : (
+										<IconButton onClick={() => postCollectionT(item._id)}>
+											<Bookmark />
+										</IconButton>
+									)} */}
 								</CardActions>
 							</Card>
 						);
