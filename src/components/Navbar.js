@@ -338,6 +338,7 @@ export default function NavBar() {
 
 										{image && (
 											<Grid item xs={12} sm={12}>
+												{console.log(image)}
 												<ListItem>
 													<InsertLink />
 													<ListItemText primary={image.name} />

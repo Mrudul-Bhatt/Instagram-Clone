@@ -6,12 +6,13 @@ import {
 	Card,
 	CardHeader,
 	CardContent,
+	GridListTile,
+	Grid,
+	GridList,
 } from '@material-ui/core';
 import { Alert, Skeleton } from '@material-ui/lab';
-// import M from 'materialize-css';
 import { makeStyles } from '@material-ui/core/styles';
 import { red, grey } from '@material-ui/core/colors/';
-import { ViewModule } from '@material-ui/icons';
 
 const useStyles = makeStyles((theme) => ({
 	appBar: {
@@ -53,6 +54,11 @@ const useStyles = makeStyles((theme) => ({
 	title: {
 		marginLeft: theme.spacing(2),
 		flex: 1,
+	},
+	gridList: {
+		maxWidth: 500,
+		// width: 500,
+		// height: 500,
 	},
 }));
 
@@ -146,6 +152,51 @@ export const LoaderProfile = () => {
 					<Skeleton animation='wave' height={10} width='80%' />
 				</CardContent>
 			</Card>
+		</Container>
+	);
+};
+
+export const LoaderCollections = () => {
+	const classes = useStyles();
+
+	const array = [
+		1,
+		2,
+		3,
+		4,
+		5,
+		6,
+		7,
+		8,
+		9,
+		10,
+		11,
+		12,
+		13,
+		14,
+		15,
+		16,
+		17,
+		18,
+		19,
+		20,
+		21,
+	];
+
+	return (
+		<Container component='main' maxWidth='sm'>
+			<GridList
+				cellHeight='100%'
+				className={classes.gridList}
+				cols={3}
+				style={{ marginTop: '10px' }}
+			>
+				{array.map((item) => (
+					<GridListTile cols={1} key={item}>
+						<Skeleton variant='rect' height={152} />
+					</GridListTile>
+				))}
+			</GridList>
 		</Container>
 	);
 };

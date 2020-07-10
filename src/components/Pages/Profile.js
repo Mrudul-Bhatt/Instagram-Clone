@@ -125,7 +125,7 @@ const Profile = () => {
 	const [deleteModal, setDeleteModal] = useState(false);
 	const [imageModal, setImageModal] = useState(false);
 	const history = useHistory();
-	const [image, setImage] = useState('');
+	const [imageProfile, setImageProfile] = useState('');
 	const [url, setUrl] = useState('');
 	const [loading, setLoading] = useState(false);
 	const [followersDialog, setFollowersDialog] = useState(false);
@@ -308,7 +308,7 @@ const Profile = () => {
 						localStorage.setItem('user', JSON.stringify(response.data));
 						// M.toast({ html: 'Image updated successfully', classes: 'green' });
 						message.success('Profile image updated!');
-						setImage(null);
+						setImageProfile(null);
 					}
 				})
 				.catch((error) => {
@@ -319,7 +319,7 @@ const Profile = () => {
 
 	const addImage = () => {
 		const data = new FormData();
-		data.append('file', image);
+		data.append('file', imageProfile);
 		data.append('upload_preset', 'insta-clone');
 		data.append('cloud_name', 'dxediwgyn');
 		fetch('	https://api.cloudinary.com/v1_1/dxediwgyn/image/upload ', {
@@ -389,7 +389,7 @@ const Profile = () => {
 				TransitionComponent={Transition}
 				keepMounted
 				onClose={() => {
-					setImage(null);
+					setImageProfile(null);
 					setImageModal(false);
 				}}
 				aria-labelledby='alert-dialog-slide-title'
@@ -397,7 +397,7 @@ const Profile = () => {
 				style={{ width: '100%' }}
 			>
 				<DialogTitle id='alert-dialog-slide-title'>
-					{'Update profile image'}
+					{'Update Display Profile'}
 				</DialogTitle>
 				<DialogContent>
 					{/* <DialogContentText id='alert-dialog-slide-description'>
@@ -410,7 +410,7 @@ const Profile = () => {
 								id='contained-button-file'
 								type='file'
 								hidden
-								onChange={(e) => setImage(e.target.files[0])}
+								onChange={(e) => setImageProfile(e.target.files[0])}
 							/>
 							<label htmlFor='contained-button-file'>
 								<Button
@@ -425,11 +425,11 @@ const Profile = () => {
 							</label>
 						</Grid>
 
-						{image && (
+						{imageProfile && (
 							<Grid item xs={12} sm={12}>
 								<ListItem>
 									<InsertLink />
-									<ListItemText primary={image.name} />
+									<ListItemText primary={imageProfile.name} />
 								</ListItem>
 							</Grid>
 						)}
@@ -438,7 +438,7 @@ const Profile = () => {
 				<DialogActions>
 					<Button
 						onClick={() => {
-							setImage(null);
+							setImageProfile(null);
 							setImageModal(false);
 						}}
 						color='primary'

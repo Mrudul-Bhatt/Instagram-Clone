@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import GridList from '@material-ui/core/GridList';
-import GridListTile from '@material-ui/core/GridListTile';
 import { baseUrl } from '../../utility/helper';
-import { Container, Grid, ButtonBase } from '@material-ui/core';
+import {
+	Container,
+	Grid,
+	ButtonBase,
+	GridList,
+	GridListTile,
+	Link as MLink,
+} from '@material-ui/core';
+import { useHistory } from 'react-router';
+import { Skeleton } from '@material-ui/lab';
+import { LoaderCollections } from '../../utility/loader';
 
 const useStyles = makeStyles((theme) => ({
 	root: {
@@ -17,7 +25,6 @@ const useStyles = makeStyles((theme) => ({
 	},
 	gridList: {
 		maxWidth: 500,
-		maxHeight: 500,
 		// width: 500,
 		// height: 500,
 	},
@@ -27,8 +34,13 @@ const Collections = () => {
 	const classes = useStyles();
 	const [data, setData] = useState([]);
 	const user = JSON.parse(localStorage.getItem('user'));
+	const [loading, setLoading] = useState(false);
+	const history = useHistory();
+	const array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 	useEffect(() => {
+		setLoading(true);
+
 		fetch(`${baseUrl}/allpost`, {
 			headers: {
 				'Content-type': 'application/json',
@@ -44,28 +56,38 @@ const Collections = () => {
 					}
 				});
 				setData(newData);
+				setLoading(false);
 			})
 			.catch((err) => {
 				console.log(err);
+				setLoading(false);
 			});
 	}, []);
 
 	return (
-		<Container component='main' maxWidth='sm'>
-			<GridList
-				cellHeight={160}
-				className={classes.gridList}
-				cols={3}
-				style={{ marginTop: '10px' }}
-			>
-				{data &&
-					data.map((item) => (
-						<GridListTile cols={1} key={item._id}>
-							<img src={item.imageUrl} alt={item.body} />
-						</GridListTile>
-					))}
-			</GridList>
-		</Container>
+		<div>
+			{loading && <LoaderCollections />}
+			<Container component='main' maxWidth='sm'>
+				<GridList
+					cellHeight='100%'
+					className={classes.gridList}
+					cols={3}
+					style={{ marginTop: '10px' }}
+				>
+					{data &&
+						data.map((item) => (
+							<GridListTile cols={1} key={item._id}>
+								<img
+									style={{ height: 152 }}
+									src={item.imageUrl}
+									alt={item.body}
+									onClick={() => history.push('/collectionlist')}
+								/>
+							</GridListTile>
+						))}
+				</GridList>
+			</Container>
+		</div>
 	);
 };
 
