@@ -135,7 +135,6 @@ const Profile = () => {
 	const [followingData, setFollowingData] = useState([]);
 
 	const [commentsDialog, setCommentsDialog] = useState(false);
-	const [itemData, setItemData] = useState(null);
 	const [itemId, setItemId] = useState('');
 	const [addCommentDialog, setAddCommentDialog] = useState(false);
 	const [choiceCommentDialog, setChoiceCommentDialog] = useState(false);
@@ -143,6 +142,7 @@ const Profile = () => {
 	const [choiceVertDialog, setChoiceVertDialog] = useState(false);
 	const [displayText, setDisplayText] = useState('');
 	const [vertItemId, setVertItemId] = useState('');
+	const [editPostDialog, setEditPostDialog] = useState(false);
 
 	useEffect(() => {
 		if (notifyE) {
@@ -459,27 +459,6 @@ const Profile = () => {
 		);
 	};
 
-	const singlePost = () => {
-		fetch(`${baseUrl}/singlepost`, {
-			method: 'post',
-			headers: {
-				'Content-type': 'application/json',
-				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
-			},
-			body: JSON.stringify({
-				itemId,
-			}),
-		})
-			.then((res) => res.json())
-			.then((result) => {
-				console.log(result.mypost.comments.length);
-
-				setItemData(result.mypost);
-				setCommentsDialog(true);
-			})
-			.catch((err) => console.log(err));
-	};
-
 	const postComment = (value) => {
 		console.log(value);
 		fetch(`${baseUrl}/comments`, {
@@ -575,13 +554,10 @@ const Profile = () => {
 				onClose={() => {
 					setChoiceCommentDialog(false);
 				}}
-				aria-labelledby='alert-dialog-slide-title'
-				aria-describedby='alert-dialog-slide-description'
-				style={{ width: '100%' }}
 			>
 				<DialogContent>
 					<List>
-						<ListItem>
+						<ListItem button>
 							<ListItemIcon>
 								<AddComment />
 							</ListItemIcon>
@@ -593,101 +569,31 @@ const Profile = () => {
 								}}
 							/>
 						</ListItem>
-						<ListItem>
+						<ListItem button>
 							<ListItemIcon>
 								<Comment />
 							</ListItemIcon>
 							<ListItemText
 								primary='All Comments'
 								onClick={() => {
-									singlePost();
+									setChoiceCommentDialog(false);
+									setCommentsDialog(true);
+								}}
+							/>
+						</ListItem>
+						<ListItem button>
+							<ListItemIcon>
+								<Close />
+							</ListItemIcon>
+							<ListItemText
+								primary='Close'
+								onClick={() => {
 									setChoiceCommentDialog(false);
 								}}
 							/>
 						</ListItem>
 					</List>
 				</DialogContent>
-				<DialogActions>
-					<Button
-						onClick={() => {
-							setChoiceCommentDialog(false);
-						}}
-						color='primary'
-					>
-						Cancel
-					</Button>
-				</DialogActions>
-			</Dialog>
-		);
-	};
-
-	const CommentsDialog = () => {
-		return (
-			<Dialog
-				fullScreen
-				keepMounted
-				open={commentsDialog}
-				onClose={() => {
-					setCommentsDialog(false);
-					setItemId('');
-					setItemData(null);
-				}}
-				TransitionComponent={Transition}
-			>
-				<AppBar className={classes.appBar}>
-					<Toolbar>
-						<IconButton
-							edge='start'
-							color='inherit'
-							onClick={() => {
-								setCommentsDialog(false);
-								setItemId(null);
-								setItemData(null);
-							}}
-							aria-label='close'
-						>
-							<Close />
-						</IconButton>
-						<Typography color='inherit' variant='h6' className={classes.title}>
-							Comments
-						</Typography>
-						<Button
-							autoFocus
-							color='inherit'
-							onClick={() => {
-								setCommentsDialog(false);
-								setItemId(null);
-								setItemData(null);
-							}}
-						>
-							done
-						</Button>
-					</Toolbar>
-				</AppBar>
-				<List>
-					{itemData && itemData.comments.length === 0 ? (
-						<div className={classes.alert}>
-							<Alert severity='info'>No comments yet on this post!</Alert>
-						</div>
-					) : null}
-					{itemData &&
-						itemData.comments.map((item, index) => {
-							return (
-								<div key={index}>
-									<ListItem button>
-										<ListItemAvatar>
-											<Avatar src={item.postedBy.imageUrl} />
-										</ListItemAvatar>
-										<ListItemText
-											primary={item.postedBy.name}
-											secondary={item.text}
-										/>
-									</ListItem>
-									<Divider />
-								</div>
-							);
-						})}
-				</List>
 			</Dialog>
 		);
 	};
@@ -940,6 +846,200 @@ const Profile = () => {
 		);
 	};
 
+	const CommentsDialog = () => {
+		const [itemData, setItemData] = useState(null);
+		const [toggle, setToggle] = useState(false);
+		const [delComment, setDelComment] = useState(null);
+
+		useEffect(() => {
+			if (commentsDialog) {
+				fetch(`${baseUrl}/singlepost`, {
+					method: 'post',
+					headers: {
+						'Content-type': 'application/json',
+						Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+					},
+					body: JSON.stringify({
+						itemId,
+					}),
+				})
+					.then((res) => res.json())
+					.then((result) => {
+						console.log(result.mypost.comments.length);
+
+						setItemData(result.mypost);
+					})
+					.catch((err) => console.log(err));
+			}
+		}, []);
+
+		const deleteComment = () => {
+			fetch(`${baseUrl}/deletecomment`, {
+				method: 'put',
+				headers: {
+					'Content-type': 'application/json',
+					Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+				},
+				body: JSON.stringify({
+					postId: itemId,
+					comment: delComment,
+				}),
+			})
+				.then((res) => res.json())
+				.then((response) => {
+					console.log(response);
+
+					// message.success('Comment deleted!');
+					setItemData(response.result);
+				})
+				.catch((err) => {
+					message.error('Server error!');
+
+					console.log(err);
+				});
+		};
+
+		const ChoiceCommentListDialog = () => {
+			return (
+				<Dialog
+					fullWidth
+					open={toggle}
+					TransitionComponent={Transition}
+					keepMounted
+					onClose={() => {
+						setDelComment(null);
+
+						setToggle(false);
+					}}
+				>
+					<DialogContent>
+						<List>
+							<ListItem button>
+								<ListItemIcon>
+									<Delete />
+								</ListItemIcon>
+								<ListItemText
+									primary='Delete Comment'
+									onClick={() => {
+										deleteComment();
+										setToggle(false);
+									}}
+								/>
+							</ListItem>
+							<ListItem button>
+								<ListItemIcon>
+									<Close />
+								</ListItemIcon>
+								<ListItemText
+									primary='Close'
+									onClick={() => {
+										setToggle(false);
+
+										setDelComment(null);
+									}}
+								/>
+							</ListItem>
+						</List>
+					</DialogContent>
+				</Dialog>
+			);
+		};
+
+		return (
+			<div>
+				<ChoiceCommentListDialog />
+				<Dialog
+					fullScreen
+					keepMounted
+					open={commentsDialog}
+					onClose={() => {
+						setCommentsDialog(false);
+					}}
+					TransitionComponent={Transition}
+				>
+					<AppBar className={classes.appBar}>
+						<Toolbar>
+							<IconButton
+								edge='start'
+								color='inherit'
+								onClick={() => {
+									const newData = data.map((item) => {
+										if (item._id === itemId) {
+											return itemData;
+										} else {
+											return item;
+										}
+									});
+									setData(newData);
+									setCommentsDialog(false);
+									setItemId(null);
+									setItemData(null);
+								}}
+								aria-label='close'
+							>
+								<Close />
+							</IconButton>
+							<Typography
+								color='inherit'
+								variant='h6'
+								className={classes.title}
+							>
+								Comments
+							</Typography>
+							{/* <Button
+								autoFocus
+								color='inherit'
+								onClick={() => {
+									setCommentsDialog(false);
+									setItemId(null);
+									setItemData(null);
+								}}
+							>
+								done
+							</Button> */}
+						</Toolbar>
+					</AppBar>
+					<List>
+						{console.log(itemData)}
+						{itemData && itemData.comments.length === 0 ? (
+							<div className={classes.alert}>
+								<Alert severity='info'>No comments yet on this post!</Alert>
+							</div>
+						) : null}
+						{itemData &&
+							itemData.comments.map((item, index) => {
+								return (
+									<div key={index}>
+										<ListItem button>
+											<ListItemAvatar>
+												<Avatar src={item.postedBy.imageUrl} />
+											</ListItemAvatar>
+											{item.postedBy._id === user._id ? (
+												<ListItemText
+													primary={item.postedBy.name}
+													secondary={item.text}
+													onClick={() => {
+														setDelComment(item);
+														setToggle(true);
+													}}
+												/>
+											) : (
+												<ListItemText
+													primary={item.postedBy.name}
+													secondary={item.text}
+												/>
+											)}
+										</ListItem>
+										<Divider />
+									</div>
+								);
+							})}
+					</List>
+				</Dialog>
+			</div>
+		);
+	};
+
 	return (
 		<div>
 			{loading && <LoaderProfile />}
@@ -1070,7 +1170,7 @@ const Profile = () => {
 										</IconButton>
 									}
 									title={item.postedBy.name}
-									subheader='September 14, 2016'
+									subheader={item.dateCreated}
 								/>
 								<CardMedia
 									className={classes.media}

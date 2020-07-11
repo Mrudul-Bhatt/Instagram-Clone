@@ -20,7 +20,7 @@ import {
 	Grid,
 	Container,
 } from '@material-ui/core';
-
+import moment from 'moment';
 import {
 	Home,
 	Explore,
@@ -109,6 +109,7 @@ export default function NavBar() {
 
 	useEffect(() => {
 		if (url) {
+			var date = moment().format('lll').toString();
 			fetch(`${baseUrl}/createpost`, {
 				method: 'post',
 				headers: {
@@ -116,6 +117,7 @@ export default function NavBar() {
 					Authorization: 'Bearer ' + localStorage.getItem('jwt'),
 				},
 				body: JSON.stringify({
+					dateCreated: date,
 					title,
 					body,
 					imageUrl: url,
@@ -267,7 +269,7 @@ export default function NavBar() {
 					onClose={() => setAddPost(false)}
 					TransitionComponent={Transition}
 				>
-					<AppBar color='secondary' className={classes2.appBar}>
+					<AppBar color='transparent' className={classes2.appBar}>
 						<Toolbar>
 							<IconButton
 								edge='start'
@@ -390,7 +392,7 @@ export default function NavBar() {
 					{listNav()}
 				</Drawer>
 
-				<AppBar position='static' color='secondary'>
+				<AppBar position='static' color='transparent'>
 					<Toolbar>
 						{user && (
 							<IconButton
