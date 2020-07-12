@@ -9,6 +9,10 @@ import {
 	GridListTile,
 	Grid,
 	GridList,
+	List,
+	ListItem,
+	ListItemAvatar,
+	ListItemText,
 } from '@material-ui/core';
 import { Alert, Skeleton } from '@material-ui/lab';
 import { makeStyles } from '@material-ui/core/styles';
@@ -198,5 +202,50 @@ export const LoaderCollections = () => {
 				))}
 			</GridList>
 		</Container>
+	);
+};
+
+export const LoaderSearch = () => {
+	const classes = useStyles();
+	const array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+
+	return (
+		// <Container component='main' maxWidth='sm'>
+		// <Grid container spacing={4}>
+		<Grid item xs={12} sm={12}>
+			<List>
+				{array.map((item) => (
+					<>
+						<ListItem key={item}>
+							<ListItemAvatar>
+								<Skeleton
+									animation='wave'
+									variant='circle'
+									width={45}
+									height={45}
+								/>
+							</ListItemAvatar>
+							<ListItemText
+								primary={
+									<Skeleton
+										animation='wave'
+										height={15}
+										width='80%'
+										style={{ marginBottom: 6 }}
+									/>
+								}
+								secondary={
+									<Skeleton animation='wave' height={15} width='40%' />
+								}
+							/>
+						</ListItem>
+						<Divider />
+					</>
+				))}
+			</List>
+		</Grid>
+		// </Grid>
+
+		// </Container>
 	);
 };

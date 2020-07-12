@@ -101,8 +101,8 @@ const useStyles = makeStyles((theme) => ({
 	avatar2: {
 		backgroundColor: grey[500],
 
-		width: theme.spacing(14),
-		height: theme.spacing(14),
+		width: theme.spacing(12),
+		height: theme.spacing(12),
 	},
 	appBar: {
 		position: 'relative',
@@ -285,7 +285,6 @@ const Profile = () => {
 
 	useEffect(() => {
 		if (url) {
-			//console.log(url);
 			fetch(`${baseUrl}/profileimg`, {
 				method: 'put',
 				headers: {
@@ -299,16 +298,13 @@ const Profile = () => {
 			})
 				.then((res) => res.json())
 				.then((response) => {
-					//console.log(response);
+					console.log(response);
 					if (response.error) {
-						// M.toast({ html: response.error, classes: 'red' });
 						message.error(response.error);
 					} else {
-						// console.log(response);
-						// console.log(response.data);
 						localStorage.setItem('user', JSON.stringify(response.data));
-						// M.toast({ html: 'Image updated successfully', classes: 'green' });
 						message.success('Profile image updated!');
+						// setImageModal(false);
 						setImageProfile(null);
 					}
 				})
@@ -319,6 +315,9 @@ const Profile = () => {
 	}, [url]);
 
 	const addImage = () => {
+		if (!imageProfile) {
+			return;
+		}
 		const data = new FormData();
 		data.append('file', imageProfile);
 		data.append('upload_preset', 'insta-clone');
@@ -335,53 +334,6 @@ const Profile = () => {
 			.catch((error) => console.log(error));
 	};
 
-	// const ConfirmDelete = () => {
-	// 	return (
-	// 		<Dialog
-	// 			fullWidth
-	// 			open={deleteModal}
-	// 			TransitionComponent={Transition}
-	// 			keepMounted
-	// 			onClose={() => {
-	// 				setDeleteId(null);
-	// 				setDeleteModal(false);
-	// 			}}
-	// 			aria-labelledby='alert-dialog-slide-title'
-	// 			aria-describedby='alert-dialog-slide-description'
-	// 			style={{ width: '100%' }}
-	// 		>
-	// 			<DialogTitle id='alert-dialog-slide-title'>
-	// 				{'Delete this post?'}
-	// 			</DialogTitle>
-	// 			<DialogContent>
-	// 				<DialogContentText id='alert-dialog-slide-description'>
-	// 					This action cannot be undone!
-	// 				</DialogContentText>
-	// 			</DialogContent>
-	// 			<DialogActions>
-	// 				<Button
-	// 					onClick={() => {
-	// 						setDeleteId(null);
-	// 						setDeleteModal(false);
-	// 					}}
-	// 					color='primary'
-	// 				>
-	// 					Cancel
-	// 				</Button>
-	// 				<Button
-	// 					onClick={() => {
-	// 						deletePost();
-	// 						setDeleteModal(false);
-	// 					}}
-	// 					color='primary'
-	// 				>
-	// 					Delete
-	// 				</Button>
-	// 			</DialogActions>
-	// 		</Dialog>
-	// 	);
-	// };
-
 	const UpdateImage = () => {
 		return (
 			<Dialog
@@ -393,18 +345,9 @@ const Profile = () => {
 					setImageProfile(null);
 					setImageModal(false);
 				}}
-				aria-labelledby='alert-dialog-slide-title'
-				aria-describedby='alert-dialog-slide-description'
-				style={{ width: '100%' }}
 			>
-				<DialogTitle id='alert-dialog-slide-title'>
-					{'Update Display Profile'}
-				</DialogTitle>
+				<DialogTitle>{'Update Display Profile'}</DialogTitle>
 				<DialogContent>
-					{/* <DialogContentText id='alert-dialog-slide-description'>
-						This action cannot be undone!
-					</DialogContentText> */}
-
 					<Grid container spacing={4}>
 						<Grid item xs={12} sm={12}>
 							<input
@@ -462,6 +405,11 @@ const Profile = () => {
 
 	const postComment = (value) => {
 		console.log(value);
+		if (!value) {
+			setAddCommentDialog(false);
+
+			return;
+		}
 		fetch(`${baseUrl}/comments`, {
 			method: 'put',
 			headers: {
@@ -607,7 +555,7 @@ const Profile = () => {
 				onClose={() => setFollowersDialog(false)}
 				TransitionComponent={Transition}
 			>
-				<AppBar className={classes.appBar}>
+				<AppBar className={classes.appBar} color='transparent'>
 					<Toolbar>
 						<IconButton
 							edge='start'
@@ -673,7 +621,7 @@ const Profile = () => {
 				onClose={() => setFollowingDialog(false)}
 				TransitionComponent={Transition}
 			>
-				<AppBar className={classes.appBar}>
+				<AppBar className={classes.appBar} color='transparent'>
 					<Toolbar>
 						<IconButton
 							edge='start'
@@ -792,6 +740,10 @@ const Profile = () => {
 	};
 
 	const editPost = (value) => {
+		if (!value) {
+			setEditPostDialog(false);
+			return;
+		}
 		fetch(`${baseUrl}/editpost`, {
 			method: 'put',
 			headers: {
@@ -1053,7 +1005,7 @@ const Profile = () => {
 					}}
 					TransitionComponent={Transition}
 				>
-					<AppBar className={classes.appBar}>
+					<AppBar className={classes.appBar} color='transparent'>
 						<Toolbar>
 							<IconButton
 								edge='start'
@@ -1088,7 +1040,9 @@ const Profile = () => {
 						{console.log(itemData)}
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
-								<Alert severity='info'>No comments yet on this post!</Alert>
+								<Alert severity='info' variant='outlined'>
+									No comments on this post!
+								</Alert>
 							</div>
 						) : null}
 						{itemData &&
@@ -1156,11 +1110,11 @@ const Profile = () => {
 								aria-label='settings'
 								onClick={() => setImageModal(true)}
 							>
-								<AddPhotoAlternate />
+								<MoreVert />
 							</IconButton>
 						}
-						title={<h1>{user && user.name}</h1>}
-						subheader={<h2>{user && user.email}</h2>}
+						title={<h2>{user && user.name}</h2>}
+						subheader={<h4>{user && user.email}</h4>}
 					/>
 					<Divider />
 					<Grid container padd>
@@ -1231,22 +1185,12 @@ const Profile = () => {
 										/>
 									}
 									action={
-										// <IconButton
-										// 	onClick={() => {
-										// 		setDeleteModal(true);
-										// 		setDeleteId(item._id);
-										// 	}}
-										// 	aria-label='settings'
-										// >
-										// 	<DeleteOutline style={{ color: 'red' }} />
-										// </IconButton>
 										<IconButton
 											onClick={() => {
 												var text;
 												text = item.postCollection.includes(user._id)
 													? 'Unsave Post'
 													: 'Save Post';
-												// item.postedBy._id === user._id && setDelete(true);
 												setDisplayText(text);
 												setVertItemId(item._id);
 												setChoiceVertDialog(true);
@@ -1298,9 +1242,6 @@ const Profile = () => {
 										}}
 									>
 										<CommentIcon /> {item.comments.length}
-									</IconButton>
-									<IconButton aria-label='show more'>
-										<ExpandMoreIcon />
 									</IconButton>
 								</CardActions>
 							</Card>

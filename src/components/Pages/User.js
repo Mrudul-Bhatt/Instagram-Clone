@@ -92,8 +92,8 @@ const useStyles = makeStyles((theme) => ({
 	avatar2: {
 		backgroundColor: grey[500],
 
-		width: theme.spacing(14),
-		height: theme.spacing(14),
+		width: theme.spacing(12),
+		height: theme.spacing(12),
 	},
 	large: {
 		width: theme.spacing(15),
@@ -301,7 +301,7 @@ const User = () => {
 				onClose={() => setFollowersDialog(false)}
 				TransitionComponent={Transition}
 			>
-				<AppBar className={classes.appBar}>
+				<AppBar className={classes.appBar} color='transparent'>
 					<Toolbar>
 						<IconButton
 							edge='start'
@@ -371,7 +371,7 @@ const User = () => {
 				onClose={() => setFollowingDialog(false)}
 				TransitionComponent={Transition}
 			>
-				<AppBar className={classes.appBar}>
+				<AppBar className={classes.appBar} color='transparent'>
 					<Toolbar>
 						<IconButton
 							edge='start'
@@ -433,29 +433,13 @@ const User = () => {
 		);
 	};
 
-	// const singlePost = () => {
-	// 	fetch(`${baseUrl}/singlepost`, {
-	// 		method: 'post',
-	// 		headers: {
-	// 			'Content-type': 'application/json',
-	// 			Authorization: 'Bearer ' + localStorage.getItem('jwt'),
-	// 		},
-	// 		body: JSON.stringify({
-	// 			itemId,
-	// 		}),
-	// 	})
-	// 		.then((res) => res.json())
-	// 		.then((result) => {
-	// 			console.log(result.mypost.comments.length);
-
-	// 			setItemData(result.mypost);
-	// 			setCommentsDialog(true);
-	// 		})
-	// 		.catch((err) => console.log(err));
-	// };
-
 	const postComment = (value) => {
 		console.log(value);
+		if (!value) {
+			setAddCommentDialog(false);
+
+			return;
+		}
 		fetch(`${baseUrl}/comments`, {
 			method: 'put',
 			headers: {
@@ -705,7 +689,7 @@ const User = () => {
 					}}
 					TransitionComponent={Transition}
 				>
-					<AppBar className={classes.appBar}>
+					<AppBar className={classes.appBar} color='transparent'>
 						<Toolbar>
 							<IconButton
 								edge='start'
@@ -734,24 +718,15 @@ const User = () => {
 							>
 								Comments
 							</Typography>
-							{/* <Button
-								autoFocus
-								color='inherit'
-								onClick={() => {
-									setCommentsDialog(false);
-									setItemId(null);
-									setItemData(null);
-								}}
-							>
-								done
-							</Button> */}
 						</Toolbar>
 					</AppBar>
 					<List>
 						{console.log(itemData)}
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
-								<Alert severity='info'>No comments yet on this post!</Alert>
+								<Alert severity='info' variant='outlined'>
+									No comments on this post!
+								</Alert>
 							</div>
 						) : null}
 						{itemData &&
@@ -921,8 +896,8 @@ const User = () => {
 								className={classes.avatar2}
 							></Avatar>
 						}
-						title={<h1>{userProfile && userProfile.name}</h1>}
-						subheader={<h2>{userProfile && userProfile.email}</h2>}
+						title={<h2>{userProfile && userProfile.name}</h2>}
+						subheader={<h4>{userProfile && userProfile.email}</h4>}
 					/>
 					<Divider />
 					<Grid container>
@@ -1018,22 +993,12 @@ const User = () => {
 										></Avatar>
 									}
 									action={
-										// <IconButton
-										// 	onClick={() => {
-										// 		setDeleteModal(true);
-										// 		setDeleteId(item._id);
-										// 	}}
-										// 	aria-label='settings'
-										// >
-										// 	<DeleteOutline style={{ color: 'red' }} />
-										// </IconButton>
 										<IconButton
 											onClick={() => {
 												var text;
 												text = item.postCollection.includes(user._id)
 													? 'Unsave Post'
 													: 'Save Post';
-												// item.postedBy._id === user._id && setDelete(true);
 												setDisplayText(text);
 												setVertItemId(item._id);
 												setChoiceVertDialog(true);
@@ -1043,7 +1008,7 @@ const User = () => {
 										</IconButton>
 									}
 									title={item.postedBy.name}
-									subheader='September 14, 2016'
+									subheader={item.dateCreated}
 								/>
 								<CardMedia
 									className={classes.media}
@@ -1085,9 +1050,6 @@ const User = () => {
 										}}
 									>
 										<CommentIcon /> {item.comments.length}
-									</IconButton>
-									<IconButton aria-label='show more'>
-										<ExpandMoreIcon />
 									</IconButton>
 								</CardActions>
 							</Card>

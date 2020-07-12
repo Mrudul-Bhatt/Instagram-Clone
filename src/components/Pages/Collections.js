@@ -10,7 +10,7 @@ import {
 	Link as MLink,
 } from '@material-ui/core';
 import { useHistory } from 'react-router';
-import { Skeleton } from '@material-ui/lab';
+import { Skeleton, Alert } from '@material-ui/lab';
 import { LoaderCollections } from '../../utility/loader';
 
 const useStyles = makeStyles((theme) => ({
@@ -41,7 +41,7 @@ const Collections = () => {
 	useEffect(() => {
 		setLoading(true);
 
-		fetch(`${baseUrl}/allpost`, {
+		fetch(`${baseUrl}/allpostcollections`, {
 			headers: {
 				'Content-type': 'application/json',
 				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
@@ -68,6 +68,15 @@ const Collections = () => {
 		<div>
 			{loading && <LoaderCollections />}
 			<Container component='main' maxWidth='sm'>
+				{data && data.length === 0 ? (
+					<Alert
+						severity='info'
+						variant='outlined'
+						style={{ marginTop: '20px' }}
+					>
+						No posts saved in collection!
+					</Alert>
+				) : null}
 				<GridList
 					cellHeight='100%'
 					className={classes.gridList}

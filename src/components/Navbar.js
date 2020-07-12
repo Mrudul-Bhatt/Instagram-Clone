@@ -31,6 +31,9 @@ import {
 	CloudUpload,
 	InsertLink,
 	Collections,
+	Search,
+	Add,
+	AddBoxTwoTone,
 } from '@material-ui/icons';
 import MenuIcon from '@material-ui/icons/Menu';
 import { ExitToApp } from '@material-ui/icons';
@@ -42,6 +45,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import * as actions from '../store/actions/user';
 import { baseUrl } from '../utility/helper';
 import { message, Space } from 'antd';
+import { Skeleton, Alert } from '@material-ui/lab';
+import { LoaderSearch } from '../utility/loader';
 
 const useStyles1 = makeStyles((theme) => ({
 	root: {
@@ -78,7 +83,7 @@ const useStyles3 = makeStyles((theme) => ({
 	},
 	form: {
 		width: '100%', // Fix IE 11 issue.
-		marginTop: theme.spacing(1),
+		marginTop: theme.spacing(4),
 	},
 	submit: {
 		margin: theme.spacing(3, 0, 2),
@@ -97,6 +102,7 @@ export default function NavBar() {
 	const [activeNav, setActiveNav] = useState(2);
 	const [nav, setNav] = useState(false);
 	const [addPost, setAddPost] = useState(false);
+	const [search, setSearch] = useState('');
 	const user = JSON.parse(localStorage.getItem('user'));
 	const dispatch = useDispatch();
 	const logout = () => dispatch(actions.logout());
@@ -109,6 +115,14 @@ export default function NavBar() {
 
 	useEffect(() => {
 		if (url) {
+			if (!title || !body) {
+				setUrl(null);
+				setImage(null);
+				message.error('Incomplete input, post could not be created!');
+				setAddPost(false);
+				return;
+			}
+
 			var date = moment().format('lll').toString();
 			fetch(`${baseUrl}/createpost`, {
 				method: 'post',
@@ -137,7 +151,7 @@ export default function NavBar() {
 						setBody(null);
 						setUrl(null);
 						message.success('Post created!');
-						// history.push('/');
+						history.push('/');
 					}
 					setLoader(false);
 				})
@@ -151,6 +165,7 @@ export default function NavBar() {
 
 	const addUserPost = () => {
 		setLoader(true);
+
 		const data = new FormData();
 		data.append('file', image);
 		data.append('upload_preset', 'insta-clone');
@@ -163,8 +178,14 @@ export default function NavBar() {
 			.then((data) => {
 				console.log(data);
 				setUrl(data.url);
+				if (data.error.message === 'Missing required parameter - file') {
+					message.error(data.error.message);
+					setAddPost(false);
+				}
 			})
-			.catch((error) => console.log(error));
+			.catch((error) => {
+				console.log(error);
+			});
 	};
 
 	const listNav = () => (
@@ -260,8 +281,148 @@ export default function NavBar() {
 		</div>
 	);
 
+	const SearchDialog = () => {
+		const [searchVal, setSearchVal] = useState(null);
+		const [searchUserData, setSearchUserData] = useState([]);
+		const [loading, setLoading] = useState(false);
+
+		const searchUsers = (query) => {
+			setLoading(true);
+			setSearchVal(query);
+			fetch(`${baseUrl}/search`, {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+				},
+				body: JSON.stringify({
+					query,
+				}),
+			})
+				.then((res) => res.json())
+				.then((value) => {
+					console.log(value);
+					setSearchUserData(value.result);
+					setLoading(false);
+				})
+				.catch((err) => {
+					console.log(err);
+					setLoading(false);
+				});
+		};
+
+		return (
+			<div>
+				<Dialog
+					fullScreen
+					open={search}
+					onClose={() => setSearch(false)}
+					TransitionComponent={Transition}
+				>
+					<AppBar color='transparent' className={classes2.appBar}>
+						<Toolbar>
+							<IconButton
+								edge='start'
+								color='inherit'
+								onClick={() => {
+									setSearch(false);
+									setSearchVal(null);
+									setSearchUserData([]);
+								}}
+								aria-label='close'
+							>
+								<Close />
+							</IconButton>
+							<Typography
+								color='inherit'
+								variant='h6'
+								className={classes2.title}
+							>
+								Search
+							</Typography>
+							<Button
+								autoFocus
+								color='inherit'
+								onClick={() => {
+									setSearch(false);
+									setSearchVal(null);
+									setSearchUserData([]);
+								}}
+							>
+								Done
+							</Button>
+						</Toolbar>
+					</AppBar>
+					<div>
+						<Container component='main' maxWidth='sm'>
+							<div className={classes3.form} noValidate>
+								<Grid container spacing={4}>
+									<Grid item xs={12} sm={12}>
+										<TextField
+											variant='outlined'
+											required
+											fullWidth
+											placeholder='Search by name...'
+											value={searchVal}
+											onChange={(e) => searchUsers(e.target.value)}
+										/>
+									</Grid>
+									<Grid item xs={12} sm={12}>
+										<List>
+											{!loading &&
+											searchVal !== null &&
+											searchUserData &&
+											searchUserData.length === 0 ? (
+												<Alert severity='info' variant='outlined'>
+													User with that name doesn't exist!
+												</Alert>
+											) : null}
+											{searchUserData &&
+												searchUserData.map((item) => (
+													<div key={item._id}>
+														<ListItem button>
+															<ListItemAvatar>
+																<Avatar
+																	src={
+																		item.imageUrl !== 'noimage'
+																			? item.imageUrl
+																			: null
+																	}
+																/>
+															</ListItemAvatar>
+															<ListItemText
+																primary={item.name}
+																secondary={item.email}
+																onClick={() => {
+																	history.push(
+																		item._id === user._id
+																			? '/profile'
+																			: '/user/' + item._id
+																	);
+																	setSearch(false);
+																	setSearchVal(null);
+																	setSearchUserData([]);
+																}}
+															/>
+														</ListItem>
+														<Divider />
+													</div>
+												))}
+										</List>
+									</Grid>
+									{loading && <LoaderSearch />}
+								</Grid>
+							</div>
+						</Container>
+					</div>
+				</Dialog>
+			</div>
+		);
+	};
+
 	return (
 		<div>
+			<SearchDialog />
 			<div>
 				<Dialog
 					fullScreen
@@ -313,9 +474,7 @@ export default function NavBar() {
 								<Avatar className={classes3.avatar}>
 									<PostAdd />
 								</Avatar>
-								{/* <Typography component='h1' variant='h5'>
-									Sign in
-								</Typography> */}
+
 								<div className={classes3.form} noValidate>
 									<Grid container spacing={4}>
 										<Grid item xs={12} sm={12}>
@@ -408,13 +567,19 @@ export default function NavBar() {
 						<Typography color='inherit' variant='h6' className={classes.title}>
 							Instagram
 						</Typography>
-
-						<IconButton color='inherit' onClick={() => setAddPost(true)}>
-							<PostAdd />
-						</IconButton>
-						<IconButton color='inherit'>
-							<Info />
-						</IconButton>
+						{user && (
+							<>
+								<IconButton color='inherit' onClick={() => setSearch(true)}>
+									<Search />
+								</IconButton>
+								<IconButton color='inherit' onClick={() => setAddPost(true)}>
+									<PostAdd />
+								</IconButton>
+								<IconButton color='inherit'>
+									<Info />
+								</IconButton>
+							</>
+						)}
 					</Toolbar>
 				</AppBar>
 			</div>

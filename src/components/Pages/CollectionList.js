@@ -119,7 +119,7 @@ const CollectionList = () => {
 
 	useEffect(() => {
 		setLoading(true);
-		fetch(`${baseUrl}/allpost`, {
+		fetch(`${baseUrl}/allpostcollections`, {
 			headers: {
 				'Content-type': 'application/json',
 				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
@@ -225,6 +225,11 @@ const CollectionList = () => {
 	};
 
 	const postComment = (value) => {
+		if (!value) {
+			setAddCommentDialog(false);
+
+			return;
+		}
 		console.log(value);
 		fetch(`${baseUrl}/comments`, {
 			method: 'put',
@@ -504,7 +509,7 @@ const CollectionList = () => {
 					}}
 					TransitionComponent={Transition}
 				>
-					<AppBar className={classes.appBar}>
+					<AppBar className={classes.appBar} color='transparent'>
 						<Toolbar>
 							<IconButton
 								edge='start'
@@ -539,7 +544,9 @@ const CollectionList = () => {
 						{console.log(itemData)}
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
-								<Alert severity='info'>No comments yet on this post!</Alert>
+								<Alert severity='info' variant='outlined'>
+									No comments on this post!
+								</Alert>
 							</div>
 						) : null}
 						{itemData &&
@@ -577,6 +584,10 @@ const CollectionList = () => {
 	};
 
 	const editPost = (value) => {
+		if (!value) {
+			setEditPostDialog(false);
+			return;
+		}
 		fetch(`${baseUrl}/editpost`, {
 			method: 'put',
 			headers: {
@@ -770,7 +781,9 @@ const CollectionList = () => {
 									action={
 										<IconButton
 											onClick={() => {
-												item.postedBy._id === user._id && setDelete(true);
+												item.postedBy._id === user._id
+													? setDelete(true)
+													: setDelete(false);
 												setVertItemId(item._id);
 												setChoiceVertDialog(true);
 											}}
@@ -779,7 +792,7 @@ const CollectionList = () => {
 										</IconButton>
 									}
 									title={item.postedBy.name}
-									subheader='September 14, 2016'
+									subheader={item.dateCreated}
 								/>
 								<CardMedia
 									className={classes.media}
@@ -821,9 +834,6 @@ const CollectionList = () => {
 										}}
 									>
 										<CommentIcon /> {item.comments.length}
-									</IconButton>
-									<IconButton aria-label='show more'>
-										<ExpandMoreIcon />
 									</IconButton>
 								</CardActions>
 							</Card>

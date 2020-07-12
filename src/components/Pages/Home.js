@@ -213,6 +213,11 @@ const Home = () => {
 
 	const postComment = (value) => {
 		console.log(value);
+		if (!value) {
+			setAddCommentDialog(false);
+
+			return;
+		}
 		fetch(`${baseUrl}/comments`, {
 			method: 'put',
 			headers: {
@@ -569,7 +574,7 @@ const Home = () => {
 					}}
 					TransitionComponent={Transition}
 				>
-					<AppBar className={classes.appBar}>
+					<AppBar className={classes.appBar} color='transparent'>
 						<Toolbar>
 							<IconButton
 								edge='start'
@@ -604,7 +609,9 @@ const Home = () => {
 						{console.log(itemData)}
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
-								<Alert severity='info'>No comments yet on this post!</Alert>
+								<Alert severity='info' variant='outlined'>
+									No comments on this post!
+								</Alert>
 							</div>
 						) : null}
 						{itemData &&
@@ -707,7 +714,7 @@ const Home = () => {
 										</IconButton>
 									}
 									title={item.postedBy.name}
-									subheader='September 14, 2016'
+									subheader={item.dateCreated}
 								/>
 								<CardMedia
 									className={classes.media}
@@ -750,15 +757,6 @@ const Home = () => {
 									>
 										<CommentIcon /> {item.comments.length}
 									</IconButton>
-									{/* {item.postCollection.includes(user._id) ? (
-										<IconButton onClick={() => postCollectionF(item._id)}>
-											<Bookmark style={{ color: 'black' }} />
-										</IconButton>
-									) : (
-										<IconButton onClick={() => postCollectionT(item._id)}>
-											<Bookmark />
-										</IconButton>
-									)} */}
 								</CardActions>
 							</Card>
 						);

@@ -221,6 +221,10 @@ const Explore = () => {
 	};
 
 	const postComment = (value) => {
+		if (!value) {
+			setAddCommentDialog(false);
+			return;
+		}
 		console.log(value);
 		fetch(`${baseUrl}/comments`, {
 			method: 'put',
@@ -250,50 +254,6 @@ const Explore = () => {
 				message.error('Server error!');
 			});
 	};
-
-	// const ConfirmDelete = () => {
-	// 	return (
-	// 		<Dialog
-	// 			fullWidth
-	// 			open={visible}
-	// 			TransitionComponent={Transition}
-	// 			keepMounted
-	// 			onClose={() => {
-	// 				setVisible(false);
-	// 				setDeleteId(null);
-	// 			}}
-	// 		>
-	// 			<DialogTitle id='alert-dialog-slide-title'>
-	// 				{'Delete this post?'}
-	// 			</DialogTitle>
-	// 			<DialogContent>
-	// 				<DialogContentText id='alert-dialog-slide-description'>
-	// 					This action cannot be undone!
-	// 				</DialogContentText>
-	// 			</DialogContent>
-	// 			<DialogActions>
-	// 				<Button
-	// 					onClick={() => {
-	// 						setVisible(false);
-	// 						setDeleteId(null);
-	// 					}}
-	// 					color='secondary'
-	// 				>
-	// 					Cancel
-	// 				</Button>
-	// 				<Button
-	// 					onClick={() => {
-	// 						deletePost();
-	// 						setVisible(false);
-	// 					}}
-	// 					color='primary'
-	// 				>
-	// 					Delete
-	// 				</Button>
-	// 			</DialogActions>
-	// 		</Dialog>
-	// 	);
-	// };
 
 	const postCollectionT = () => {
 		fetch(`${baseUrl}/postcollectionT`, {
@@ -576,7 +536,7 @@ const Explore = () => {
 					}}
 					TransitionComponent={Transition}
 				>
-					<AppBar className={classes.appBar}>
+					<AppBar className={classes.appBar} color='transparent'>
 						<Toolbar>
 							<IconButton
 								edge='start'
@@ -611,7 +571,9 @@ const Explore = () => {
 						{console.log(itemData)}
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
-								<Alert severity='info'>No comments yet on this post!</Alert>
+								<Alert severity='info' variant='outlined'>
+									No comments on this post!
+								</Alert>
 							</div>
 						) : null}
 						{itemData &&
@@ -649,6 +611,10 @@ const Explore = () => {
 	};
 
 	const editPost = (value) => {
+		if (!value) {
+			setEditPostDialog(false);
+			return;
+		}
 		fetch(`${baseUrl}/editpost`, {
 			method: 'put',
 			headers: {
@@ -848,7 +814,10 @@ const Explore = () => {
 												text = item.postCollection.includes(user._id)
 													? 'Unsave Post'
 													: 'Save Post';
-												item.postedBy._id === user._id && setDelete(true);
+												item.postedBy._id === user._id
+													? setDelete(true)
+													: setDelete(false);
+
 												setDisplayText(text);
 												setVertItemId(item._id);
 												setChoiceVertDialog(true);
@@ -858,7 +827,7 @@ const Explore = () => {
 										</IconButton>
 									}
 									title={item.postedBy.name}
-									subheader='September 14, 2016'
+									subheader={item.dateCreated}
 								/>
 								<CardMedia
 									className={classes.media}
@@ -900,9 +869,6 @@ const Explore = () => {
 										}}
 									>
 										<CommentIcon /> {item.comments.length}
-									</IconButton>
-									<IconButton aria-label='show more'>
-										<ExpandMoreIcon />
 									</IconButton>
 								</CardActions>
 							</Card>
