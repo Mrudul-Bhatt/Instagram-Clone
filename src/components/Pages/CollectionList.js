@@ -52,6 +52,7 @@ import {
 	MoreVert,
 	Delete,
 	Bookmark,
+	Update,
 } from '@material-ui/icons';
 import { useModal, Modal } from '@zeit-ui/react';
 import { Loader } from '../../utility/loader';
@@ -114,6 +115,7 @@ const CollectionList = () => {
 	const [choiceVertDialog, setChoiceVertDialog] = useState(false);
 	const [displayText, setDisplayText] = useState('');
 	const [vertItemId, setVertItemId] = useState('');
+	const [editPostDialog, setEditPostDialog] = useState(false);
 
 	useEffect(() => {
 		setLoading(true);
@@ -139,27 +141,6 @@ const CollectionList = () => {
 				setLoading(false);
 			});
 	}, []);
-
-	const singlePost = () => {
-		fetch(`${baseUrl}/singlepost`, {
-			method: 'post',
-			headers: {
-				'Content-type': 'application/json',
-				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
-			},
-			body: JSON.stringify({
-				itemId,
-			}),
-		})
-			.then((res) => res.json())
-			.then((result) => {
-				console.log(result.mypost.comments.length);
-
-				setItemData(result.mypost);
-				setCommentsDialog(true);
-			})
-			.catch((err) => console.log(err));
-	};
 
 	const like = (postId) => {
 		fetch(`${baseUrl}/like`, {
@@ -274,36 +255,6 @@ const CollectionList = () => {
 			});
 	};
 
-	// const postCollectionT = () => {
-	// 	fetch(`${baseUrl}/postcollectionT`, {
-	// 		method: 'put',
-	// 		headers: {
-	// 			'Content-Type': 'application/json',
-	// 			Authorization: 'Bearer ' + localStorage.getItem('jwt'),
-	// 		},
-	// 		body: JSON.stringify({ postId: vertItemId }),
-	// 	})
-	// 		.then((res) => res.json())
-	// 		.then((response) => {
-	// 			console.log(response);
-	// 			const newData = data.map((item) => {
-	// 				if (item._id === response._id) {
-	// 					return response;
-	// 				} else {
-	// 					return item;
-	// 				}
-	// 			});
-	// 			setData(newData);
-	// 			setVertItemId('');
-	// 			setDisplayText('');
-	// 			message.success('Saved to collection!');
-	// 		})
-	// 		.catch((error) => {
-	// 			console.log(error);
-	// 			message.error('Server error!');
-	// 		});
-	// };
-
 	const postCollectionF = () => {
 		fetch(`${baseUrl}/postcollectionF`, {
 			method: 'put',
@@ -398,15 +349,10 @@ const CollectionList = () => {
 				onClose={() => {
 					setChoiceCommentDialog(false);
 				}}
-				aria-labelledby='alert-dialog-slide-title'
-				aria-describedby='alert-dialog-slide-description'
-				style={{ width: '100%' }}
 			>
-				{/* <DialogTitle id='alert-dialog-slide-title'>{'Comments'}</DialogTitle> */}
 				<DialogContent>
-					{/* <DialogContentText id='alert-dialog-slide-description'> */}
 					<List>
-						<ListItem>
+						<ListItem button>
 							<ListItemIcon>
 								<AddComment />
 							</ListItemIcon>
@@ -418,115 +364,296 @@ const CollectionList = () => {
 								}}
 							/>
 						</ListItem>
-						<ListItem>
+						<ListItem button>
 							<ListItemIcon>
 								<Comment />
 							</ListItemIcon>
 							<ListItemText
 								primary='All Comments'
 								onClick={() => {
-									singlePost();
+									setChoiceCommentDialog(false);
+									setCommentsDialog(true);
+								}}
+							/>
+						</ListItem>
+						<ListItem button>
+							<ListItemIcon>
+								<Close />
+							</ListItemIcon>
+							<ListItemText
+								primary='Close'
+								onClick={() => {
 									setChoiceCommentDialog(false);
 								}}
 							/>
 						</ListItem>
 					</List>
-					{/* </DialogContentText> */}
 				</DialogContent>
-				<DialogActions>
-					<Button
-						onClick={() => {
-							setChoiceCommentDialog(false);
-						}}
-						color='primary'
-					>
-						Cancel
-					</Button>
-					{/* <Button
-						onClick={() => {
-							postComment();
-							setAddCommentDialog(false);
-						}}
-						color='primary'
-					>
-						Post
-					</Button> */}
-				</DialogActions>
 			</Dialog>
 		);
 	};
 
 	const CommentsDialog = () => {
+		const [itemData, setItemData] = useState(null);
+		const [toggle, setToggle] = useState(false);
+		const [delComment, setDelComment] = useState(null);
+
+		useEffect(() => {
+			if (commentsDialog) {
+				fetch(`${baseUrl}/singlepost`, {
+					method: 'post',
+					headers: {
+						'Content-type': 'application/json',
+						Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+					},
+					body: JSON.stringify({
+						itemId,
+					}),
+				})
+					.then((res) => res.json())
+					.then((result) => {
+						console.log(result.mypost.comments.length);
+
+						setItemData(result.mypost);
+					})
+					.catch((err) => console.log(err));
+			}
+		}, []);
+
+		const deleteComment = () => {
+			fetch(`${baseUrl}/deletecomment`, {
+				method: 'put',
+				headers: {
+					'Content-type': 'application/json',
+					Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+				},
+				body: JSON.stringify({
+					postId: itemId,
+					comment: delComment,
+				}),
+			})
+				.then((res) => res.json())
+				.then((response) => {
+					console.log(response);
+
+					// message.success('Comment deleted!');
+					setItemData(response.result);
+				})
+				.catch((err) => {
+					message.error('Server error!');
+
+					console.log(err);
+				});
+		};
+
+		const ChoiceCommentListDialog = () => {
+			return (
+				<Dialog
+					fullWidth
+					open={toggle}
+					TransitionComponent={Transition}
+					keepMounted
+					onClose={() => {
+						setDelComment(null);
+
+						setToggle(false);
+					}}
+				>
+					<DialogContent>
+						<List>
+							<ListItem button>
+								<ListItemIcon>
+									<Delete />
+								</ListItemIcon>
+								<ListItemText
+									primary='Delete Comment'
+									onClick={() => {
+										deleteComment();
+										setToggle(false);
+									}}
+								/>
+							</ListItem>
+							<ListItem button>
+								<ListItemIcon>
+									<Close />
+								</ListItemIcon>
+								<ListItemText
+									primary='Close'
+									onClick={() => {
+										setToggle(false);
+
+										setDelComment(null);
+									}}
+								/>
+							</ListItem>
+						</List>
+					</DialogContent>
+				</Dialog>
+			);
+		};
+
+		return (
+			<div>
+				<ChoiceCommentListDialog />
+				<Dialog
+					fullScreen
+					keepMounted
+					open={commentsDialog}
+					onClose={() => {
+						setCommentsDialog(false);
+					}}
+					TransitionComponent={Transition}
+				>
+					<AppBar className={classes.appBar}>
+						<Toolbar>
+							<IconButton
+								edge='start'
+								color='inherit'
+								onClick={() => {
+									const newData = data.map((item) => {
+										if (item._id === itemId) {
+											return itemData;
+										} else {
+											return item;
+										}
+									});
+									setData(newData);
+									setCommentsDialog(false);
+									setItemId(null);
+									setItemData(null);
+								}}
+								aria-label='close'
+							>
+								<Close />
+							</IconButton>
+							<Typography
+								color='inherit'
+								variant='h6'
+								className={classes.title}
+							>
+								Comments
+							</Typography>
+						</Toolbar>
+					</AppBar>
+					<List>
+						{console.log(itemData)}
+						{itemData && itemData.comments.length === 0 ? (
+							<div className={classes.alert}>
+								<Alert severity='info'>No comments yet on this post!</Alert>
+							</div>
+						) : null}
+						{itemData &&
+							itemData.comments.map((item, index) => {
+								return (
+									<div key={index}>
+										<ListItem button>
+											<ListItemAvatar>
+												<Avatar src={item.postedBy.imageUrl} />
+											</ListItemAvatar>
+											{item.postedBy._id === user._id ? (
+												<ListItemText
+													primary={item.postedBy.name}
+													secondary={item.text}
+													onClick={() => {
+														setDelComment(item);
+														setToggle(true);
+													}}
+												/>
+											) : (
+												<ListItemText
+													primary={item.postedBy.name}
+													secondary={item.text}
+												/>
+											)}
+										</ListItem>
+										<Divider />
+									</div>
+								);
+							})}
+					</List>
+				</Dialog>
+			</div>
+		);
+	};
+
+	const editPost = (value) => {
+		fetch(`${baseUrl}/editpost`, {
+			method: 'put',
+			headers: {
+				'Content-type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({
+				postId: vertItemId,
+				body: value,
+			}),
+		})
+			.then((res) => res.json())
+			.then((result) => {
+				console.log(result);
+				const newData = data.map((item) => {
+					if (result.data._id === item._id) {
+						return result.data;
+					} else {
+						return item;
+					}
+				});
+				setData(newData);
+				message.success('Caption updated');
+
+				setEditPostDialog(false);
+			})
+			.catch((err) => console.log(err));
+	};
+
+	const EditPostDialog = () => {
+		const [caption, setCaption] = useState('');
+
 		return (
 			<Dialog
-				fullScreen
-				keepMounted
-				open={commentsDialog}
-				onClose={() => {
-					setCommentsDialog(false);
-					setItemId('');
-					setItemData(null);
-				}}
+				fullWidth
+				open={editPostDialog}
 				TransitionComponent={Transition}
+				onClose={() => {
+					setEditPostDialog(false);
+					setVertItemId('');
+					setCaption('');
+				}}
 			>
-				<AppBar className={classes.appBar}>
-					<Toolbar>
-						<IconButton
-							edge='start'
-							color='inherit'
-							onClick={() => {
-								setCommentsDialog(false);
-								setItemId(null);
-								setItemData(null);
-							}}
-							aria-label='close'
-						>
-							<Close />
-						</IconButton>
-						<Typography color='inherit' variant='h6' className={classes.title}>
-							Comments
-						</Typography>
-						<Button
-							autoFocus
-							color='inherit'
-							onClick={() => {
-								setCommentsDialog(false);
-								setItemId(null);
-								setItemData(null);
-							}}
-						>
-							done
-						</Button>
-					</Toolbar>
-				</AppBar>
-				<List>
-					{console.log(itemData)}
-					{itemData && itemData.comments.length === 0 ? (
-						<div className={classes.alert}>
-							<Alert severity='info'>No comments yet on this post!</Alert>
-						</div>
-					) : null}
-					{itemData &&
-						itemData.comments.map((item, index) => {
-							return (
-								<div key={index}>
-									<ListItem button>
-										<ListItemAvatar>
-											<Avatar src={item.postedBy.imageUrl} />
-										</ListItemAvatar>
-										<ListItemText
-											primary={item.postedBy.name}
-											secondary={item.text}
-											// onClick={() => {
-											// 	history.push(`/user/${item._id}`);
-											// }}
-										/>
-									</ListItem>
-									<Divider />
-								</div>
-							);
-						})}
-				</List>
+				<DialogTitle>{'Edit Caption'}</DialogTitle>
+				<DialogContent>
+					<TextField
+						autoFocus
+						margin='dense'
+						id='name'
+						placeholder='New Caption...'
+						type='text'
+						fullWidth
+						value={caption}
+						onChange={(e) => setCaption(e.target.value)}
+					/>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						onClick={() => {
+							setEditPostDialog(false);
+
+							setVertItemId('');
+
+							setCaption('');
+						}}
+						color='primary'
+					>
+						Cancel
+					</Button>
+					<Button
+						type='submit'
+						color='primary'
+						onClick={() => editPost(caption)}
+					>
+						Post
+					</Button>
+				</DialogActions>
 			</Dialog>
 		);
 	};
@@ -557,18 +684,33 @@ const CollectionList = () => {
 							/>
 						</ListItem>
 						{del && (
-							<ListItem button>
-								<ListItemIcon>
-									<Delete />
-								</ListItemIcon>
-								<ListItemText
-									primary='Delete Post'
-									onClick={() => {
-										deletePost();
-										setChoiceVertDialog(false);
-									}}
-								/>
-							</ListItem>
+							<>
+								<ListItem button>
+									<ListItemIcon>
+										<Update />
+									</ListItemIcon>
+									<ListItemText
+										primary='Edit Caption'
+										onClick={() => {
+											setChoiceVertDialog(false);
+
+											setEditPostDialog(true);
+										}}
+									/>
+								</ListItem>
+								<ListItem button>
+									<ListItemIcon>
+										<Delete />
+									</ListItemIcon>
+									<ListItemText
+										primary='Delete Post'
+										onClick={() => {
+											deletePost();
+											setChoiceVertDialog(false);
+										}}
+									/>
+								</ListItem>
+							</>
 						)}
 						<ListItem button>
 							<ListItemIcon>
@@ -590,6 +732,7 @@ const CollectionList = () => {
 	return (
 		<div>
 			{loading && <Loader />}
+			<EditPostDialog />
 			<CommentsDialog />
 			<ChoiceVertDialog />
 			<PostCommentDialog />

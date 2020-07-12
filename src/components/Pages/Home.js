@@ -211,88 +211,6 @@ const Home = () => {
 			.catch((err) => console.log(err));
 	};
 
-	const editPost = (value) => {
-		fetch(`${baseUrl}/editpost`, {
-			method: 'put',
-			headers: {
-				'Content-type': 'application/json',
-				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
-			},
-			body: JSON.stringify({
-				postId: vertItemId,
-				body: value,
-			}),
-		})
-			.then((res) => res.json())
-			.then((result) => {
-				console.log(result);
-				const newData = data.map((item) => {
-					if (result.data._id === item._id) {
-						return result.data;
-					} else {
-						return item;
-					}
-				});
-				setData(newData);
-				message.success('Caption updated');
-
-				setEditPostDialog(false);
-			})
-			.catch((err) => console.log(err));
-	};
-
-	const EditPostDialog = () => {
-		const [caption, setCaption] = useState('');
-
-		return (
-			<Dialog
-				fullWidth
-				open={editPostDialog}
-				TransitionComponent={Transition}
-				onClose={() => {
-					setEditPostDialog(false);
-					setItemId('');
-					setCaption('');
-				}}
-			>
-				<DialogTitle>{'Edit Caption'}</DialogTitle>
-				<DialogContent>
-					<TextField
-						autoFocus
-						margin='dense'
-						id='name'
-						placeholder='New Caption...'
-						type='text'
-						fullWidth
-						value={caption}
-						onChange={(e) => setCaption(e.target.value)}
-					/>
-				</DialogContent>
-				<DialogActions>
-					<Button
-						onClick={() => {
-							setEditPostDialog(false);
-
-							setItemId('');
-
-							setCaption('');
-						}}
-						color='primary'
-					>
-						Cancel
-					</Button>
-					<Button
-						type='submit'
-						color='primary'
-						onClick={() => editPost(caption)}
-					>
-						Post
-					</Button>
-				</DialogActions>
-			</Dialog>
-		);
-	};
-
 	const postComment = (value) => {
 		console.log(value);
 		fetch(`${baseUrl}/comments`, {
@@ -522,19 +440,7 @@ const Home = () => {
 								}}
 							/>
 						</ListItem>
-						<ListItem button>
-							<ListItemIcon>
-								<Update />
-							</ListItemIcon>
-							<ListItemText
-								primary='Edit Caption'
-								onClick={() => {
-									setChoiceVertDialog(false);
 
-									setEditPostDialog(true);
-								}}
-							/>
-						</ListItem>
 						<ListItem button>
 							<ListItemIcon>
 								<Close />
@@ -597,15 +503,6 @@ const Home = () => {
 
 					// message.success('Comment deleted!');
 					setItemData(response.result);
-					// const newData = data.map((item) => {
-					// 	if (item._id === itemId) {
-					// 		return response.result;
-					// 	} else {
-					// 		return item;
-					// 	}
-					// });
-					// console.log(newData);
-					// setData(newData);
 				})
 				.catch((err) => {
 					message.error('Server error!');
@@ -701,17 +598,6 @@ const Home = () => {
 							>
 								Comments
 							</Typography>
-							{/* <Button
-								autoFocus
-								color='inherit'
-								onClick={() => {
-									setCommentsDialog(false);
-									setItemId(null);
-									setItemData(null);
-								}}
-							>
-								done
-							</Button> */}
 						</Toolbar>
 					</AppBar>
 					<List>
@@ -761,7 +647,7 @@ const Home = () => {
 			<ChoiceVertDialog />
 			<PostCommentDialog />
 			<ChoiceCommentDialog />
-			<EditPostDialog />
+
 			<CommentsDialog />
 			<Container component='main' maxWidth='sm'>
 				{data && data.length === 0 ? (

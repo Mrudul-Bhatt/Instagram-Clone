@@ -56,6 +56,7 @@ import {
 	MoreVert,
 	Bookmark,
 	Delete,
+	Update,
 } from '@material-ui/icons';
 import { Loader, LoaderProfile } from '../../utility/loader';
 
@@ -790,6 +791,88 @@ const Profile = () => {
 			});
 	};
 
+	const editPost = (value) => {
+		fetch(`${baseUrl}/editpost`, {
+			method: 'put',
+			headers: {
+				'Content-type': 'application/json',
+				Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+			},
+			body: JSON.stringify({
+				postId: vertItemId,
+				body: value,
+			}),
+		})
+			.then((res) => res.json())
+			.then((result) => {
+				console.log(result);
+				const newData = data.map((item) => {
+					if (result.data._id === item._id) {
+						return result.data;
+					} else {
+						return item;
+					}
+				});
+				setData(newData);
+				message.success('Caption updated');
+
+				setEditPostDialog(false);
+			})
+			.catch((err) => console.log(err));
+	};
+
+	const EditPostDialog = () => {
+		const [caption, setCaption] = useState('');
+
+		return (
+			<Dialog
+				fullWidth
+				open={editPostDialog}
+				TransitionComponent={Transition}
+				onClose={() => {
+					setEditPostDialog(false);
+					setVertItemId('');
+					setCaption('');
+				}}
+			>
+				<DialogTitle>{'Edit Caption'}</DialogTitle>
+				<DialogContent>
+					<TextField
+						autoFocus
+						margin='dense'
+						id='name'
+						placeholder='New Caption...'
+						type='text'
+						fullWidth
+						value={caption}
+						onChange={(e) => setCaption(e.target.value)}
+					/>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						onClick={() => {
+							setEditPostDialog(false);
+
+							setVertItemId('');
+
+							setCaption('');
+						}}
+						color='primary'
+					>
+						Cancel
+					</Button>
+					<Button
+						type='submit'
+						color='primary'
+						onClick={() => editPost(caption)}
+					>
+						Post
+					</Button>
+				</DialogActions>
+			</Dialog>
+		);
+	};
+
 	const ChoiceVertDialog = () => {
 		return (
 			<Dialog
@@ -814,6 +897,19 @@ const Profile = () => {
 										? postCollectionF()
 										: postCollectionT();
 									setChoiceVertDialog(false);
+								}}
+							/>
+						</ListItem>
+						<ListItem button>
+							<ListItemIcon>
+								<Update />
+							</ListItemIcon>
+							<ListItemText
+								primary='Edit Caption'
+								onClick={() => {
+									setChoiceVertDialog(false);
+
+									setEditPostDialog(true);
 								}}
 							/>
 						</ListItem>
@@ -986,17 +1082,6 @@ const Profile = () => {
 							>
 								Comments
 							</Typography>
-							{/* <Button
-								autoFocus
-								color='inherit'
-								onClick={() => {
-									setCommentsDialog(false);
-									setItemId(null);
-									setItemData(null);
-								}}
-							>
-								done
-							</Button> */}
 						</Toolbar>
 					</AppBar>
 					<List>
@@ -1044,6 +1129,7 @@ const Profile = () => {
 		<div>
 			{loading && <LoaderProfile />}
 			{loading && <Loader />}
+			<EditPostDialog />
 			<CommentsDialog />
 			<PostCommentDialog />
 			<ChoiceCommentDialog />
