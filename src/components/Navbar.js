@@ -176,7 +176,7 @@ export default function NavBar() {
 		})
 			.then((res) => res.json())
 			.then((data) => {
-				console.log(data);
+				//console.log(data);
 				setUrl(data.url);
 				if (data.error.message === 'Missing required parameter - file') {
 					message.error(data.error.message);
@@ -301,7 +301,7 @@ export default function NavBar() {
 			})
 				.then((res) => res.json())
 				.then((value) => {
-					console.log(value);
+					//console.log(value);
 					setSearchUserData(value.result);
 					setLoading(false);
 				})
@@ -499,7 +499,6 @@ export default function NavBar() {
 
 										{image && (
 											<Grid item xs={12} sm={12}>
-												{console.log(image)}
 												<ListItem>
 													<InsertLink />
 													<ListItemText primary={image.name} />
@@ -575,9 +574,9 @@ export default function NavBar() {
 								<IconButton color='inherit' onClick={() => setAddPost(true)}>
 									<PostAdd />
 								</IconButton>
-								<IconButton color='inherit'>
+								{/* <IconButton color='inherit'>
 									<Info />
-								</IconButton>
+								</IconButton> */}
 							</>
 						)}
 					</Toolbar>

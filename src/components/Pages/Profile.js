@@ -156,7 +156,6 @@ const Profile = () => {
 			message.success('Signed In');
 			cleanup();
 		}
-		//console.log(cli
 	}, [click]);
 
 	const like = (postId) => {
@@ -298,7 +297,7 @@ const Profile = () => {
 			})
 				.then((res) => res.json())
 				.then((response) => {
-					console.log(response);
+					//console.log(response);
 					if (response.error) {
 						message.error(response.error);
 					} else {
@@ -404,7 +403,7 @@ const Profile = () => {
 	};
 
 	const postComment = (value) => {
-		console.log(value);
+		//console.log(value);
 		if (!value) {
 			setAddCommentDialog(false);
 
@@ -420,7 +419,7 @@ const Profile = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response.result._id) {
 						return response.result;
@@ -690,7 +689,7 @@ const Profile = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response._id) {
 						return response;
@@ -720,7 +719,7 @@ const Profile = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response._id) {
 						return response;
@@ -757,7 +756,7 @@ const Profile = () => {
 		})
 			.then((res) => res.json())
 			.then((result) => {
-				console.log(result);
+				//console.log(result);
 				const newData = data.map((item) => {
 					if (result.data._id === item._id) {
 						return result.data;
@@ -913,7 +912,7 @@ const Profile = () => {
 				})
 					.then((res) => res.json())
 					.then((result) => {
-						console.log(result.mypost.comments.length);
+						//console.log(result.mypost.comments.length);
 
 						setItemData(result.mypost);
 					})
@@ -935,7 +934,7 @@ const Profile = () => {
 			})
 				.then((res) => res.json())
 				.then((response) => {
-					console.log(response);
+					//console.log(response);
 
 					// message.success('Comment deleted!');
 					setItemData(response.result);
@@ -1037,7 +1036,6 @@ const Profile = () => {
 						</Toolbar>
 					</AppBar>
 					<List>
-						{console.log(itemData)}
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
 								<Alert severity='info' variant='outlined'>

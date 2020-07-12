@@ -135,7 +135,6 @@ const Home = () => {
 			message.success('Signed In');
 			cleanup();
 		}
-		//console.log(cli
 	}, [click]);
 
 	useEffect(() => {
@@ -212,7 +211,7 @@ const Home = () => {
 	};
 
 	const postComment = (value) => {
-		console.log(value);
+		//console.log(value);
 		if (!value) {
 			setAddCommentDialog(false);
 
@@ -228,7 +227,7 @@ const Home = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response.result._id) {
 						return response.result;
@@ -258,7 +257,7 @@ const Home = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response._id) {
 						return response;
@@ -288,7 +287,7 @@ const Home = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response._id) {
 						return response;
@@ -482,7 +481,7 @@ const Home = () => {
 				})
 					.then((res) => res.json())
 					.then((result) => {
-						console.log(result.mypost.comments.length);
+						//console.log(result.mypost.comments.length);
 
 						setItemData(result.mypost);
 					})
@@ -504,7 +503,7 @@ const Home = () => {
 			})
 				.then((res) => res.json())
 				.then((response) => {
-					console.log(response);
+					//console.log(response);
 
 					// message.success('Comment deleted!');
 					setItemData(response.result);
@@ -606,7 +605,6 @@ const Home = () => {
 						</Toolbar>
 					</AppBar>
 					<List>
-						{console.log(itemData)}
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
 								<Alert severity='info' variant='outlined'>

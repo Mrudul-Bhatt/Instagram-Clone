@@ -22,7 +22,7 @@ function Copyright() {
 	return (
 		<Typography variant='body2' color='textSecondary' align='center'>
 			{'Copyright © '}
-			<Link color='inherit' href='https://material-ui.com/'>
+			<Link color='inherit' href='#'>
 				Instagram
 			</Link>{' '}
 			{new Date().getFullYear()}
@@ -130,10 +130,6 @@ export default function Signin() {
 							onChange={(e) => setPassword(e.target.value)}
 						/>
 
-						{/* <FormControlLabel
-						control={<Checkbox value='remember' color='primary' />}
-						label='Remember me'
-					/> */}
 						<Button
 							type='submit'
 							fullWidth
@@ -145,11 +141,6 @@ export default function Signin() {
 							Sign In
 						</Button>
 						<Grid container>
-							{/* <Grid item xs>
-							<Link href='#' variant='body2'>
-                            Forgot password?
-							</Link>
-						</Grid> */}
 							<Grid item>
 								<Link variant='body2' onClick={() => history.push('/signup')}>
 									{"Don't have an account? Sign Up"}

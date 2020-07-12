@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import {
 	Container,
-	LinearProgress,
 	Divider,
 	Card,
 	CardHeader,
@@ -14,9 +13,9 @@ import {
 	ListItemAvatar,
 	ListItemText,
 } from '@material-ui/core';
-import { Alert, Skeleton } from '@material-ui/lab';
+import { Skeleton } from '@material-ui/lab';
 import { makeStyles } from '@material-ui/core/styles';
-import { red, grey } from '@material-ui/core/colors/';
+import { grey } from '@material-ui/core/colors/';
 
 const useStyles = makeStyles((theme) => ({
 	appBar: {

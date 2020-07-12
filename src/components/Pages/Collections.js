@@ -36,7 +36,6 @@ const Collections = () => {
 	const user = JSON.parse(localStorage.getItem('user'));
 	const [loading, setLoading] = useState(false);
 	const history = useHistory();
-	const array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 	useEffect(() => {
 		setLoading(true);

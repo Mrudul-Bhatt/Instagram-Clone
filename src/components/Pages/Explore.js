@@ -225,7 +225,7 @@ const Explore = () => {
 			setAddCommentDialog(false);
 			return;
 		}
-		console.log(value);
+		//console.log(value);
 		fetch(`${baseUrl}/comments`, {
 			method: 'put',
 			headers: {
@@ -236,7 +236,7 @@ const Explore = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response.result._id) {
 						return response.result;
@@ -266,7 +266,7 @@ const Explore = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response._id) {
 						return response;
@@ -296,7 +296,7 @@ const Explore = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response._id) {
 						return response;
@@ -328,9 +328,6 @@ const Explore = () => {
 					setItemId('');
 					setComment('');
 				}}
-				// aria-labelledby='alert-dialog-slide-title'
-				// aria-describedby='alert-dialog-slide-description'
-				style={{ width: '100%' }}
 			>
 				<DialogTitle id='alert-dialog-slide-title'>
 					{'Post Comment'}
@@ -444,7 +441,7 @@ const Explore = () => {
 				})
 					.then((res) => res.json())
 					.then((result) => {
-						console.log(result.mypost.comments.length);
+						//console.log(result.mypost.comments.length);
 
 						setItemData(result.mypost);
 					})
@@ -466,7 +463,7 @@ const Explore = () => {
 			})
 				.then((res) => res.json())
 				.then((response) => {
-					console.log(response);
+					//console.log(response);
 
 					// message.success('Comment deleted!');
 					setItemData(response.result);
@@ -568,7 +565,6 @@ const Explore = () => {
 						</Toolbar>
 					</AppBar>
 					<List>
-						{console.log(itemData)}
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
 								<Alert severity='info' variant='outlined'>
@@ -628,7 +624,7 @@ const Explore = () => {
 		})
 			.then((res) => res.json())
 			.then((result) => {
-				console.log(result);
+				//console.log(result);
 				const newData = data.map((item) => {
 					if (result.data._id === item._id) {
 						return result.data;

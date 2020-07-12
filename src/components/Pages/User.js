@@ -196,7 +196,7 @@ const User = () => {
 		})
 			.then((res) => res.json())
 			.then((result) => {
-				console.log(result);
+				//console.log(result);
 				setProfile(result.user);
 				setData(result.posts);
 				setLoading(false);
@@ -220,17 +220,9 @@ const User = () => {
 		})
 			.then((res) => res.json())
 			.then((data) => {
-				console.log(data);
+				//console.log(data);
 				localStorage.setItem('user', JSON.stringify(data));
-				// setProfile((prevState) => {
-				// 	return {
-				// 		...prevState,
-				// 		user: {
-				// 			...prevState.user,
-				// 			followers: [...prevState.user.followers, data._id],
-				// 		},
-				// 	};
-				// });
+
 				setProfile((prevState) => {
 					return {
 						...prevState,
@@ -238,7 +230,8 @@ const User = () => {
 					};
 				});
 				message.success(`Started following "${userProfile.name}"!`);
-			});
+			})
+			.catch((err) => console.log(err));
 	};
 	const unfollow = () => {
 		fetch(`${baseUrl}/unfollow`, {
@@ -265,7 +258,8 @@ const User = () => {
 					};
 				});
 				message.success(`Unfollowed "${userProfile.name}"!`);
-			});
+			})
+			.catch((err) => console.log(err));
 	};
 
 	useEffect(() => {
@@ -276,7 +270,7 @@ const User = () => {
 		})
 			.then((res) => res.json())
 			.then((data) => {
-				console.log(userProfile);
+				//console.log(userProfile);
 				const newFollowersData = data.result.filter((item) => {
 					if (userProfile.followers.includes(item._id)) {
 						return item;
@@ -434,7 +428,7 @@ const User = () => {
 	};
 
 	const postComment = (value) => {
-		console.log(value);
+		//console.log(value);
 		if (!value) {
 			setAddCommentDialog(false);
 
@@ -450,7 +444,7 @@ const User = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response.result._id) {
 						return response.result;
@@ -597,7 +591,7 @@ const User = () => {
 				})
 					.then((res) => res.json())
 					.then((result) => {
-						console.log(result.mypost.comments.length);
+						//console.log(result.mypost.comments.length);
 
 						setItemData(result.mypost);
 					})
@@ -619,7 +613,7 @@ const User = () => {
 			})
 				.then((res) => res.json())
 				.then((response) => {
-					console.log(response);
+					//console.log(response);
 
 					// message.success('Comment deleted!');
 					setItemData(response.result);
@@ -721,7 +715,6 @@ const User = () => {
 						</Toolbar>
 					</AppBar>
 					<List>
-						{console.log(itemData)}
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
 								<Alert severity='info' variant='outlined'>
@@ -774,7 +767,7 @@ const User = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response._id) {
 						return response;
@@ -804,7 +797,7 @@ const User = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response._id) {
 						return response;

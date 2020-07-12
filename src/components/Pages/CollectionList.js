@@ -230,7 +230,7 @@ const CollectionList = () => {
 
 			return;
 		}
-		console.log(value);
+		//console.log(value);
 		fetch(`${baseUrl}/comments`, {
 			method: 'put',
 			headers: {
@@ -241,7 +241,7 @@ const CollectionList = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.map((item) => {
 					if (item._id === response.result._id) {
 						return response.result;
@@ -271,7 +271,7 @@ const CollectionList = () => {
 		})
 			.then((res) => res.json())
 			.then((response) => {
-				console.log(response);
+				//console.log(response);
 				const newData = data.filter((item) => {
 					if (item._id !== response._id) {
 						return item;
@@ -301,8 +301,6 @@ const CollectionList = () => {
 					setItemId('');
 					setComment('');
 				}}
-				// aria-labelledby='alert-dialog-slide-title'
-				// aria-describedby='alert-dialog-slide-description'
 				style={{ width: '100%' }}
 			>
 				<DialogTitle id='alert-dialog-slide-title'>
@@ -417,7 +415,7 @@ const CollectionList = () => {
 				})
 					.then((res) => res.json())
 					.then((result) => {
-						console.log(result.mypost.comments.length);
+						//console.log(result.mypost.comments.length);
 
 						setItemData(result.mypost);
 					})
@@ -439,7 +437,7 @@ const CollectionList = () => {
 			})
 				.then((res) => res.json())
 				.then((response) => {
-					console.log(response);
+					//console.log(response);
 
 					// message.success('Comment deleted!');
 					setItemData(response.result);
@@ -541,7 +539,6 @@ const CollectionList = () => {
 						</Toolbar>
 					</AppBar>
 					<List>
-						{console.log(itemData)}
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
 								<Alert severity='info' variant='outlined'>
@@ -601,7 +598,7 @@ const CollectionList = () => {
 		})
 			.then((res) => res.json())
 			.then((result) => {
-				console.log(result);
+				//console.log(result);
 				const newData = data.map((item) => {
 					if (result.data._id === item._id) {
 						return result.data;

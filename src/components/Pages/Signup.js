@@ -21,7 +21,7 @@ function Copyright() {
 	return (
 		<Typography variant='body2' color='textSecondary' align='center'>
 			{'Copyright © '}
-			<Link color='inherit' href='https://material-ui.com/'>
+			<Link color='inherit' href='#'>
 				Instagram
 			</Link>{' '}
 			{new Date().getFullYear()}
@@ -101,15 +101,11 @@ export default function Signup() {
 				setLoader(false);
 			})
 			.catch((error) => {
-				//console.log(error);
+				console.log(error);
 				message.error('Server is down!');
 				setLoader(false);
 			});
 	};
-
-	// const load = () => {
-	// 	message.loading('Loading...');
-	// };
 
 	return (
 		<div>
@@ -139,17 +135,7 @@ export default function Signup() {
 									onChange={(e) => setName(e.target.value)}
 								/>
 							</Grid>
-							{/* <Grid item xs={12} sm={12}>
-							<TextField
-                            variant='outlined'
-                            required
-                            fullWidth
-                            id='lastName'
-                            label='Last Name'
-                            name='lastName'
-                            autoComplete='lname'
-							/>
-						</Grid> */}
+
 							<Grid item xs={12}>
 								<TextField
 									variant='outlined'
@@ -177,12 +163,6 @@ export default function Signup() {
 									onChange={(e) => setPassword(e.target.value)}
 								/>
 							</Grid>
-							{/* <Grid item xs={12}>
-							<FormControlLabel
-                            control={<Checkbox value='allowExtraEmails' color='primary' />}
-                            label='I want to receive inspiration, marketing promotions and updates via email.'
-							/>
-						</Grid> */}
 						</Grid>
 						<Button
 							type='submit'
