@@ -19,6 +19,10 @@ import {
 	Slide,
 	Grid,
 	Container,
+	DialogTitle,
+	DialogContent,
+	DialogContentText,
+	DialogActions,
 } from '@material-ui/core';
 import moment from 'moment';
 import {
@@ -112,6 +116,7 @@ export default function NavBar() {
 	const [image, setImage] = useState('');
 	const [url, setUrl] = useState(null);
 	const [loader, setLoader] = useState(false);
+	const [logoutDialog, setLogoutDialog] = useState(false);
 
 	useEffect(() => {
 		if (url) {
@@ -119,7 +124,6 @@ export default function NavBar() {
 				setUrl(null);
 				setImage(null);
 				message.error('Incomplete input, post could not be created!');
-				setAddPost(false);
 				return;
 			}
 
@@ -145,7 +149,6 @@ export default function NavBar() {
 						message.error(data.error);
 					} else {
 						// M.toast({ html: 'Post created successfully', classes: 'green' });
-						setAddPost(false);
 						setTitle(null);
 						setImage(null);
 						setBody(null);
@@ -180,12 +183,46 @@ export default function NavBar() {
 				setUrl(data.url);
 				if (data.error.message === 'Missing required parameter - file') {
 					message.error(data.error.message);
-					setAddPost(false);
 				}
 			})
 			.catch((error) => {
 				console.log(error);
 			});
+	};
+
+	const LogoutDialog = () => {
+		return (
+			<div>
+				<Dialog
+					fullWidth
+					open={logoutDialog}
+					TransitionComponent={Transition}
+					keepMounted
+					onClose={() => setLogoutDialog(false)}
+				>
+					<DialogTitle>{'Log Out ?'}</DialogTitle>
+					<DialogContent>
+						<DialogContentText>
+							Do you want to log out this session ?
+						</DialogContentText>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={() => setLogoutDialog(false)} color='primary'>
+							Cancel
+						</Button>
+						<Button
+							onClick={() => {
+								logout();
+								setLogoutDialog(false);
+							}}
+							color='primary'
+						>
+							Yes
+						</Button>
+					</DialogActions>
+				</Dialog>
+			</div>
+		);
 	};
 
 	const listNav = () => (
@@ -275,7 +312,11 @@ export default function NavBar() {
 					<ListItemIcon onClick={() => logout()}>
 						<ExitToApp />
 					</ListItemIcon>
-					<ListItemText primary={'Log Out'} onClick={() => logout()} />
+
+					<ListItemText
+						primary={'Log Out'}
+						onClick={() => setLogoutDialog(true)}
+					/>
 				</ListItem>
 			</List>
 		</div>
@@ -422,6 +463,7 @@ export default function NavBar() {
 
 	return (
 		<div>
+			<LogoutDialog />
 			<SearchDialog />
 			<div>
 				<Dialog
@@ -533,7 +575,10 @@ export default function NavBar() {
 												variant='outlined'
 												color='primary'
 												className={classes3.submit}
-												onClick={() => addUserPost()}
+												onClick={() => {
+													addUserPost();
+													setAddPost(false);
+												}}
 											>
 												Add Post
 											</Button>
@@ -574,9 +619,6 @@ export default function NavBar() {
 								<IconButton color='inherit' onClick={() => setAddPost(true)}>
 									<PostAdd />
 								</IconButton>
-								{/* <IconButton color='inherit'>
-									<Info />
-								</IconButton> */}
 							</>
 						)}
 					</Toolbar>

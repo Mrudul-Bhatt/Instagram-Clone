@@ -29,6 +29,7 @@ import {
 	List,
 	ListItemAvatar,
 	ListItemIcon,
+	CircularProgress,
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
@@ -144,6 +145,8 @@ const Profile = () => {
 	const [displayText, setDisplayText] = useState('');
 	const [vertItemId, setVertItemId] = useState('');
 	const [editPostDialog, setEditPostDialog] = useState(false);
+	const [likeLoading, setLikeLoading] = useState(false);
+	const [likeId, setLikeId] = useState(null);
 
 	useEffect(() => {
 		if (notifyE) {
@@ -159,6 +162,7 @@ const Profile = () => {
 	}, [click]);
 
 	const like = (postId) => {
+		setLikeLoading(true);
 		fetch(`${baseUrl}/like`, {
 			method: 'put',
 			headers: {
@@ -180,11 +184,18 @@ const Profile = () => {
 					}
 				});
 				setData(newData);
+				setLikeLoading(false);
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				setLikeLoading(false);
+
+				console.log(err);
+			});
 	};
 
 	const unlike = (postId) => {
+		setLikeLoading(true);
+
 		fetch(`${baseUrl}/unlike`, {
 			method: 'put',
 			headers: {
@@ -206,8 +217,13 @@ const Profile = () => {
 					}
 				});
 				setData(newData);
+				setLikeLoading(false);
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				setLikeLoading(false);
+
+				console.log(err);
+			});
 	};
 
 	useEffect(() => {
@@ -428,7 +444,6 @@ const Profile = () => {
 					}
 				});
 				setData(newData);
-				setAddCommentDialog(false);
 				setItemId('');
 				message.success('Comment added');
 			})
@@ -483,7 +498,10 @@ const Profile = () => {
 					<Button
 						type='submit'
 						color='primary'
-						onClick={() => postComment(comment)}
+						onClick={() => {
+							postComment(comment);
+							setAddCommentDialog(false);
+						}}
 					>
 						Post
 					</Button>
@@ -766,8 +784,6 @@ const Profile = () => {
 				});
 				setData(newData);
 				message.success('Caption updated');
-
-				setEditPostDialog(false);
 			})
 			.catch((err) => console.log(err));
 	};
@@ -815,7 +831,10 @@ const Profile = () => {
 					<Button
 						type='submit'
 						color='primary'
-						onClick={() => editPost(caption)}
+						onClick={() => {
+							editPost(caption);
+							setEditPostDialog(false);
+						}}
 					>
 						Post
 					</Button>
@@ -1216,21 +1235,49 @@ const Profile = () => {
 								</CardContent>
 								<CardActions disableSpacing>
 									{item.likes.includes(user._id) ? (
-										<IconButton
-											aria-label='add to favorites'
-											onClick={() => unlike(item._id)}
-										>
-											<FavoriteIcon style={{ color: 'red' }} />
-											{item.likes.length}
-										</IconButton>
+										<>
+											{likeLoading && item._id === likeId ? (
+												<IconButton>
+													<CircularProgress
+														size={21}
+														style={{ margin: '2px' }}
+													/>
+													{item.likes.length}
+												</IconButton>
+											) : (
+												<IconButton
+													onClick={() => {
+														setLikeId(item._id);
+														unlike(item._id);
+													}}
+												>
+													<FavoriteIcon style={{ color: 'red' }} />
+													{item.likes.length}
+												</IconButton>
+											)}
+										</>
 									) : (
-										<IconButton
-											aria-label='add to favorites'
-											onClick={() => like(item._id)}
-										>
-											<FavoriteIcon />
-											{item.likes.length}
-										</IconButton>
+										<>
+											{likeLoading && item._id === likeId ? (
+												<IconButton>
+													<CircularProgress
+														size={21}
+														style={{ margin: '2px' }}
+													/>
+													{item.likes.length}
+												</IconButton>
+											) : (
+												<IconButton
+													onClick={() => {
+														setLikeId(item._id);
+														like(item._id);
+													}}
+												>
+													<FavoriteIcon />
+													{item.likes.length}
+												</IconButton>
+											)}
+										</>
 									)}
 									<IconButton
 										aria-label='share'

@@ -28,6 +28,7 @@ import {
 	ListItem,
 	ListItemText,
 	ListItemIcon,
+	CircularProgress,
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
@@ -116,6 +117,8 @@ const CollectionList = () => {
 	const [displayText, setDisplayText] = useState('');
 	const [vertItemId, setVertItemId] = useState('');
 	const [editPostDialog, setEditPostDialog] = useState(false);
+	const [likeLoading, setLikeLoading] = useState(false);
+	const [likeId, setLikeId] = useState(null);
 
 	useEffect(() => {
 		setLoading(true);
@@ -143,6 +146,7 @@ const CollectionList = () => {
 	}, []);
 
 	const like = (postId) => {
+		setLikeLoading(true);
 		fetch(`${baseUrl}/like`, {
 			method: 'put',
 			headers: {
@@ -164,8 +168,13 @@ const CollectionList = () => {
 					}
 				});
 				setData(newData);
+				setLikeLoading(false);
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				setLikeLoading(false);
+
+				console.log(err);
+			});
 	};
 
 	const deletePost = () => {
@@ -199,6 +208,8 @@ const CollectionList = () => {
 	};
 
 	const unlike = (postId) => {
+		setLikeLoading(true);
+
 		fetch(`${baseUrl}/unlike`, {
 			method: 'put',
 			headers: {
@@ -220,8 +231,13 @@ const CollectionList = () => {
 					}
 				});
 				setData(newData);
+				setLikeLoading(false);
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				setLikeLoading(false);
+
+				console.log(err);
+			});
 	};
 
 	const postComment = (value) => {
@@ -250,7 +266,6 @@ const CollectionList = () => {
 					}
 				});
 				setData(newData);
-				setAddCommentDialog(false);
 				setItemId('');
 				message.success('Comment added');
 			})
@@ -333,7 +348,10 @@ const CollectionList = () => {
 					<Button
 						type='submit'
 						color='primary'
-						onClick={() => postComment(comment)}
+						onClick={() => {
+							postComment(comment);
+							setAddCommentDialog(false);
+						}}
 					>
 						Post
 					</Button>
@@ -608,8 +626,6 @@ const CollectionList = () => {
 				});
 				setData(newData);
 				message.success('Caption updated');
-
-				setEditPostDialog(false);
 			})
 			.catch((err) => console.log(err));
 	};
@@ -657,7 +673,10 @@ const CollectionList = () => {
 					<Button
 						type='submit'
 						color='primary'
-						onClick={() => editPost(caption)}
+						onClick={() => {
+							editPost(caption);
+							setEditPostDialog(false);
+						}}
 					>
 						Post
 					</Button>
@@ -807,21 +826,49 @@ const CollectionList = () => {
 								</CardContent>
 								<CardActions disableSpacing>
 									{item.likes.includes(user._id) ? (
-										<IconButton
-											aria-label='add to favorites'
-											onClick={() => unlike(item._id)}
-										>
-											<FavoriteIcon style={{ color: 'red' }} />
-											{item.likes.length}
-										</IconButton>
+										<>
+											{likeLoading && item._id === likeId ? (
+												<IconButton>
+													<CircularProgress
+														size={21}
+														style={{ margin: '2px' }}
+													/>
+													{item.likes.length}
+												</IconButton>
+											) : (
+												<IconButton
+													onClick={() => {
+														setLikeId(item._id);
+														unlike(item._id);
+													}}
+												>
+													<FavoriteIcon style={{ color: 'red' }} />
+													{item.likes.length}
+												</IconButton>
+											)}
+										</>
 									) : (
-										<IconButton
-											aria-label='add to favorites'
-											onClick={() => like(item._id)}
-										>
-											<FavoriteIcon />
-											{item.likes.length}
-										</IconButton>
+										<>
+											{likeLoading && item._id === likeId ? (
+												<IconButton>
+													<CircularProgress
+														size={21}
+														style={{ margin: '2px' }}
+													/>
+													{item.likes.length}
+												</IconButton>
+											) : (
+												<IconButton
+													onClick={() => {
+														setLikeId(item._id);
+														like(item._id);
+													}}
+												>
+													<FavoriteIcon />
+													{item.likes.length}
+												</IconButton>
+											)}
+										</>
 									)}
 									<IconButton
 										aria-label='share'

@@ -31,6 +31,8 @@ import {
 	Menu,
 	MenuItem,
 	ListItemSecondaryAction,
+	CircularProgress,
+	Badge,
 } from '@material-ui/core';
 import { Alert, Skeleton, AlertTitle } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
@@ -122,7 +124,8 @@ const Home = () => {
 	const [choiceVertDialog, setChoiceVertDialog] = useState(false);
 	const [displayText, setDisplayText] = useState('');
 	const [vertItemId, setVertItemId] = useState('');
-	const [editPostDialog, setEditPostDialog] = useState(false);
+	const [likeLoading, setLikeLoading] = useState(false);
+	const [likeId, setLikeId] = useState(null);
 
 	useEffect(() => {
 		if (notifyE) {
@@ -159,6 +162,7 @@ const Home = () => {
 	}, []);
 
 	const like = (postId) => {
+		setLikeLoading(true);
 		fetch(`${baseUrl}/like`, {
 			method: 'put',
 			headers: {
@@ -180,11 +184,18 @@ const Home = () => {
 					}
 				});
 				setData(newData);
+				setLikeLoading(false);
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				setLikeLoading(false);
+
+				console.log(err);
+			});
 	};
 
 	const unlike = (postId) => {
+		setLikeLoading(true);
+
 		fetch(`${baseUrl}/unlike`, {
 			method: 'put',
 			headers: {
@@ -206,8 +217,12 @@ const Home = () => {
 					}
 				});
 				setData(newData);
+				setLikeLoading(false);
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				setLikeLoading(false);
+				console.log(err);
+			});
 	};
 
 	const postComment = (value) => {
@@ -730,21 +745,49 @@ const Home = () => {
 								</CardContent>
 								<CardActions disableSpacing>
 									{item.likes.includes(user._id) ? (
-										<IconButton
-											aria-label='add to favorites'
-											onClick={() => unlike(item._id)}
-										>
-											<FavoriteIcon style={{ color: 'red' }} />
-											{item.likes.length}
-										</IconButton>
+										<>
+											{likeLoading && item._id === likeId ? (
+												<IconButton>
+													<CircularProgress
+														size={21}
+														style={{ margin: '2px' }}
+													/>
+													{item.likes.length}
+												</IconButton>
+											) : (
+												<IconButton
+													onClick={() => {
+														setLikeId(item._id);
+														unlike(item._id);
+													}}
+												>
+													<FavoriteIcon style={{ color: 'red' }} />
+													{item.likes.length}
+												</IconButton>
+											)}
+										</>
 									) : (
-										<IconButton
-											aria-label='add to favorites'
-											onClick={() => like(item._id)}
-										>
-											<FavoriteIcon />
-											{item.likes.length}
-										</IconButton>
+										<>
+											{likeLoading && item._id === likeId ? (
+												<IconButton>
+													<CircularProgress
+														size={21}
+														style={{ margin: '2px' }}
+													/>
+													{item.likes.length}
+												</IconButton>
+											) : (
+												<IconButton
+													onClick={() => {
+														setLikeId(item._id);
+														like(item._id);
+													}}
+												>
+													<FavoriteIcon />
+													{item.likes.length}
+												</IconButton>
+											)}
+										</>
 									)}
 									<IconButton
 										aria-label='share'
@@ -753,9 +796,15 @@ const Home = () => {
 											setChoiceCommentDialog(true);
 										}}
 									>
-										<CommentIcon /> {item.comments.length}
+										<CommentIcon />
+										{item.comments.length}
 									</IconButton>
 								</CardActions>
+								{/* <CardActions>
+									<div style={{ margin: '0', padding: '0' }}>
+										{item.likes.length}
+									</div>
+								</CardActions> */}
 							</Card>
 						);
 					})}

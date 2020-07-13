@@ -29,8 +29,8 @@ const App = () => {
 
 	let routes = (
 		<Switch>
-			<Route path='/signin' exact component={Signin} />
-			<Route path='/signup' exact component={Signup} />
+			<Route path='/signin' component={Signin} />
+			<Route path='/signup' component={Signup} />
 		</Switch>
 	);
 
@@ -38,11 +38,11 @@ const App = () => {
 		routes = (
 			<Switch>
 				<Route path='/' exact component={Home} />
-				<Route path='/explore' exact component={Explore} />
-				<Route path='/profile' exact component={Profile} />
-				<Route path='/user/:userId' exact component={User} />
-				<Route path='/collections' exact component={Collections} />
-				<Route path='/collectionlist' exact component={CollectionList} />
+				<Route path='/explore' component={Explore} />
+				<Route path='/profile' component={Profile} />
+				<Route path='/user/:userId' component={User} />
+				<Route path='/collections' component={Collections} />
+				<Route path='/collectionlist' component={CollectionList} />
 			</Switch>
 		);
 	}

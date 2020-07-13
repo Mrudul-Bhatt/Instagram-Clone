@@ -29,6 +29,7 @@ import {
 	List,
 	ListItemAvatar,
 	ListItemIcon,
+	CircularProgress,
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
@@ -134,8 +135,13 @@ const User = () => {
 	const [choiceVertDialog, setChoiceVertDialog] = useState(false);
 	const [displayText, setDisplayText] = useState('');
 	const [vertItemId, setVertItemId] = useState('');
+	const [FUfLoading, setFUfLoading] = useState(false);
+
+	const [likeLoading, setLikeLoading] = useState(false);
+	const [likeId, setLikeId] = useState(null);
 
 	const like = (postId) => {
+		setLikeLoading(true);
 		fetch(`${baseUrl}/like`, {
 			method: 'put',
 			headers: {
@@ -157,11 +163,18 @@ const User = () => {
 					}
 				});
 				setData(newData);
+				setLikeLoading(false);
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				setLikeLoading(false);
+
+				console.log(err);
+			});
 	};
 
 	const unlike = (postId) => {
+		setLikeLoading(true);
+
 		fetch(`${baseUrl}/unlike`, {
 			method: 'put',
 			headers: {
@@ -183,8 +196,13 @@ const User = () => {
 					}
 				});
 				setData(newData);
+				setLikeLoading(false);
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				setLikeLoading(false);
+
+				console.log(err);
+			});
 	};
 
 	useEffect(() => {
@@ -208,6 +226,7 @@ const User = () => {
 	}, [userId]);
 
 	const follow = () => {
+		setFUfLoading(true);
 		fetch(`${baseUrl}/follow`, {
 			method: 'put',
 			headers: {
@@ -230,10 +249,17 @@ const User = () => {
 					};
 				});
 				message.success(`Started following "${userProfile.name}"!`);
+				setFUfLoading(false);
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				setFUfLoading(false);
+
+				console.log(err);
+			});
 	};
 	const unfollow = () => {
+		setFUfLoading(true);
+
 		fetch(`${baseUrl}/unfollow`, {
 			method: 'put',
 			headers: {
@@ -258,8 +284,13 @@ const User = () => {
 					};
 				});
 				message.success(`Unfollowed "${userProfile.name}"!`);
+				setFUfLoading(false);
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				setFUfLoading(false);
+
+				console.log(err);
+			});
 	};
 
 	useEffect(() => {
@@ -453,7 +484,6 @@ const User = () => {
 					}
 				});
 				setData(newData);
-				setAddCommentDialog(false);
 				setItemId('');
 				message.success('Comment added');
 			})
@@ -508,7 +538,10 @@ const User = () => {
 					<Button
 						type='submit'
 						color='primary'
-						onClick={() => postComment(comment)}
+						onClick={() => {
+							postComment(comment);
+							setAddCommentDialog(false);
+						}}
 					>
 						Post
 					</Button>
@@ -941,27 +974,53 @@ const User = () => {
 					<Grid container spacing={2}>
 						<Grid item sm={12} xs={12}>
 							{userProfile && userProfile.followers.includes(user._id) ? (
-								<Button
-									variant='outlined'
-									color='primary'
-									style={{ width: '100%' }}
-									startIcon={<Person />}
-									onClick={() => unfollow()}
-									disableElevation
-								>
-									Unfollow
-								</Button>
+								<>
+									{FUfLoading ? (
+										<CircularProgress
+											size={26}
+											style={{
+												marginLeft: '48%',
+												marginTop: '2px',
+												marginBottom: '2px',
+											}}
+										/>
+									) : (
+										<Button
+											variant='outlined'
+											color='primary'
+											style={{ width: '100%' }}
+											startIcon={<Person />}
+											onClick={() => unfollow()}
+											disableElevation
+										>
+											Unfollow
+										</Button>
+									)}
+								</>
 							) : (
-								<Button
-									variant='contained'
-									color='primary'
-									style={{ width: '100%' }}
-									startIcon={<Person />}
-									onClick={() => follow()}
-									disableElevation
-								>
-									Follow
-								</Button>
+								<>
+									{FUfLoading ? (
+										<CircularProgress
+											size={26}
+											style={{
+												marginLeft: '48%',
+												marginTop: '2px',
+												marginBottom: '2px',
+											}}
+										/>
+									) : (
+										<Button
+											variant='contained'
+											color='primary'
+											style={{ width: '100%' }}
+											startIcon={<Person />}
+											onClick={() => follow()}
+											disableElevation
+										>
+											Follow
+										</Button>
+									)}
+								</>
 							)}
 						</Grid>
 					</Grid>
@@ -1019,21 +1078,49 @@ const User = () => {
 								</CardContent>
 								<CardActions disableSpacing>
 									{item.likes.includes(user._id) ? (
-										<IconButton
-											aria-label='add to favorites'
-											onClick={() => unlike(item._id)}
-										>
-											<FavoriteIcon style={{ color: 'red' }} />
-											{item.likes.length}
-										</IconButton>
+										<>
+											{likeLoading && item._id === likeId ? (
+												<IconButton>
+													<CircularProgress
+														size={21}
+														style={{ margin: '2px' }}
+													/>
+													{item.likes.length}
+												</IconButton>
+											) : (
+												<IconButton
+													onClick={() => {
+														setLikeId(item._id);
+														unlike(item._id);
+													}}
+												>
+													<FavoriteIcon style={{ color: 'red' }} />
+													{item.likes.length}
+												</IconButton>
+											)}
+										</>
 									) : (
-										<IconButton
-											aria-label='add to favorites'
-											onClick={() => like(item._id)}
-										>
-											<FavoriteIcon />
-											{item.likes.length}
-										</IconButton>
+										<>
+											{likeLoading && item._id === likeId ? (
+												<IconButton>
+													<CircularProgress
+														size={21}
+														style={{ margin: '2px' }}
+													/>
+													{item.likes.length}
+												</IconButton>
+											) : (
+												<IconButton
+													onClick={() => {
+														setLikeId(item._id);
+														like(item._id);
+													}}
+												>
+													<FavoriteIcon />
+													{item.likes.length}
+												</IconButton>
+											)}
+										</>
 									)}
 									<IconButton
 										aria-label='share'
