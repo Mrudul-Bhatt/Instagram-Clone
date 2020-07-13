@@ -251,7 +251,6 @@ const Home = () => {
 					}
 				});
 				setData(newData);
-				setAddCommentDialog(false);
 				setItemId('');
 				message.success('Comment added');
 			})
@@ -366,7 +365,10 @@ const Home = () => {
 					<Button
 						type='submit'
 						color='primary'
-						onClick={() => postComment(comment)}
+						onClick={() => {
+							postComment(comment);
+							setAddCommentDialog(false);
+						}}
 					>
 						Post
 					</Button>
