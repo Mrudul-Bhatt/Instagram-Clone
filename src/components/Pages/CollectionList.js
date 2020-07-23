@@ -30,7 +30,7 @@ import {
 	ListItemIcon,
 	CircularProgress,
 } from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
+import { Alert, Skeleton } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as actions from '../../store/actions/user';
@@ -418,9 +418,11 @@ const CollectionList = () => {
 		const [itemData, setItemData] = useState(null);
 		const [toggle, setToggle] = useState(false);
 		const [delComment, setDelComment] = useState(null);
+		const [commentsLoading, setCommentsLoading] = useState(false);
 
 		useEffect(() => {
 			if (commentsDialog) {
+				setCommentsLoading(true);
 				fetch(`${baseUrl}/singlepost`, {
 					method: 'post',
 					headers: {
@@ -434,10 +436,13 @@ const CollectionList = () => {
 					.then((res) => res.json())
 					.then((result) => {
 						//console.log(result.mypost.comments.length);
-
+						setCommentsLoading(false);
 						setItemData(result.mypost);
 					})
-					.catch((err) => console.log(err));
+					.catch((err) => {
+						setCommentsLoading(false);
+						console.log(err);
+					});
 			}
 		}, []);
 
@@ -557,6 +562,37 @@ const CollectionList = () => {
 						</Toolbar>
 					</AppBar>
 					<List>
+						{commentsLoading &&
+							[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((item) => {
+								return (
+									<div key={item}>
+										<ListItem>
+											<ListItemAvatar>
+												<Skeleton
+													animation='wave'
+													variant='circle'
+													width={45}
+													height={45}
+												/>
+											</ListItemAvatar>
+											<ListItemText
+												primary={
+													<Skeleton
+														animation='wave'
+														height={15}
+														width='20%'
+														style={{ marginBottom: 6 }}
+													/>
+												}
+												secondary={
+													<Skeleton animation='wave' height={15} width='100%' />
+												}
+											/>
+										</ListItem>
+										<Divider />
+									</div>
+								);
+							})}
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
 								<Alert severity='info' variant='outlined'>
@@ -764,7 +800,7 @@ const CollectionList = () => {
 			<ChoiceVertDialog />
 			<PostCommentDialog />
 			<ChoiceCommentDialog />
-			<Container component='main' maxWidth='sm'>
+			<Container component='main' maxWidth='sm' style={{ marginBottom: 30 }}>
 				{data &&
 					data.map((item) => {
 						return (
@@ -828,11 +864,9 @@ const CollectionList = () => {
 									{item.likes.includes(user._id) ? (
 										<>
 											{likeLoading && item._id === likeId ? (
-												<IconButton>
-													<CircularProgress
-														size={21}
-														style={{ margin: '2px' }}
-													/>
+												<IconButton disabled>
+													<FavoriteIcon style={{ color: 'red' }} />
+
 													{item.likes.length}
 												</IconButton>
 											) : (
@@ -850,11 +884,9 @@ const CollectionList = () => {
 									) : (
 										<>
 											{likeLoading && item._id === likeId ? (
-												<IconButton>
-													<CircularProgress
-														size={21}
-														style={{ margin: '2px' }}
-													/>
+												<IconButton disabled>
+													<FavoriteIcon />
+
 													{item.likes.length}
 												</IconButton>
 											) : (

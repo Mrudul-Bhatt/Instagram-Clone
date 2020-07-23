@@ -31,7 +31,7 @@ import {
 	ListItemIcon,
 	CircularProgress,
 } from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
+import { Alert, Skeleton } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useHistory, useParams } from 'react-router-dom';
 import * as actions from '../../store/actions/user';
@@ -609,9 +609,11 @@ const User = () => {
 		const [itemData, setItemData] = useState(null);
 		const [toggle, setToggle] = useState(false);
 		const [delComment, setDelComment] = useState(null);
+		const [commentsLoading, setCommentsLoading] = useState(false);
 
 		useEffect(() => {
 			if (commentsDialog) {
+				setCommentsLoading(true);
 				fetch(`${baseUrl}/singlepost`, {
 					method: 'post',
 					headers: {
@@ -627,8 +629,12 @@ const User = () => {
 						//console.log(result.mypost.comments.length);
 
 						setItemData(result.mypost);
+						setCommentsLoading(false);
 					})
-					.catch((err) => console.log(err));
+					.catch((err) => {
+						setCommentsLoading(false);
+						console.log(err);
+					});
 			}
 		}, []);
 
@@ -748,6 +754,38 @@ const User = () => {
 						</Toolbar>
 					</AppBar>
 					<List>
+						{commentsLoading &&
+							[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((item) => {
+								return (
+									<div key={item}>
+										<ListItem>
+											<ListItemAvatar>
+												<Skeleton
+													animation='wave'
+													variant='circle'
+													width={45}
+													height={45}
+												/>
+											</ListItemAvatar>
+											<ListItemText
+												primary={
+													<Skeleton
+														animation='wave'
+														height={15}
+														width='20%'
+														style={{ marginBottom: 6 }}
+													/>
+												}
+												secondary={
+													<Skeleton animation='wave' height={15} width='100%' />
+												}
+											/>
+										</ListItem>
+										<Divider />
+									</div>
+								);
+							})}
+
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
 								<Alert severity='info' variant='outlined'>
@@ -904,7 +942,7 @@ const User = () => {
 			<CommentsDialog />
 			<FollowersDialog />
 			<FollowingDialog />
-			<Container component='main' maxWidth='sm'>
+			<Container component='main' maxWidth='sm' style={{ marginBottom: 30 }}>
 				<Card
 					className={classes.rootUp}
 					style={{ marginTop: '30px' }}
@@ -1080,11 +1118,9 @@ const User = () => {
 									{item.likes.includes(user._id) ? (
 										<>
 											{likeLoading && item._id === likeId ? (
-												<IconButton>
-													<CircularProgress
-														size={21}
-														style={{ margin: '2px' }}
-													/>
+												<IconButton disabled>
+													<FavoriteIcon style={{ color: 'red' }} />
+
 													{item.likes.length}
 												</IconButton>
 											) : (
@@ -1102,11 +1138,9 @@ const User = () => {
 									) : (
 										<>
 											{likeLoading && item._id === likeId ? (
-												<IconButton>
-													<CircularProgress
-														size={21}
-														style={{ margin: '2px' }}
-													/>
+												<IconButton disabled>
+													<FavoriteIcon />
+
 													{item.likes.length}
 												</IconButton>
 											) : (

@@ -483,9 +483,11 @@ const Home = () => {
 		const [itemData, setItemData] = useState(null);
 		const [toggle, setToggle] = useState(false);
 		const [delComment, setDelComment] = useState(null);
+		const [commentsLoading, setCommentsLoading] = useState(false);
 
 		useEffect(() => {
 			if (commentsDialog) {
+				setCommentsLoading(true);
 				fetch(`${baseUrl}/singlepost`, {
 					method: 'post',
 					headers: {
@@ -501,8 +503,12 @@ const Home = () => {
 						//console.log(result.mypost.comments.length);
 
 						setItemData(result.mypost);
+						setCommentsLoading(false);
 					})
-					.catch((err) => console.log(err));
+					.catch((err) => {
+						console.log(err);
+						setCommentsLoading(false);
+					});
 			}
 		}, []);
 
@@ -622,6 +628,37 @@ const Home = () => {
 						</Toolbar>
 					</AppBar>
 					<List>
+						{commentsLoading &&
+							[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((item) => {
+								return (
+									<div key={item}>
+										<ListItem>
+											<ListItemAvatar>
+												<Skeleton
+													animation='wave'
+													variant='circle'
+													width={45}
+													height={45}
+												/>
+											</ListItemAvatar>
+											<ListItemText
+												primary={
+													<Skeleton
+														animation='wave'
+														height={15}
+														width='20%'
+														style={{ marginBottom: 6 }}
+													/>
+												}
+												secondary={
+													<Skeleton animation='wave' height={15} width='100%' />
+												}
+											/>
+										</ListItem>
+										<Divider />
+									</div>
+								);
+							})}
 						{itemData && itemData.comments.length === 0 ? (
 							<div className={classes.alert}>
 								<Alert severity='info' variant='outlined'>
@@ -671,7 +708,7 @@ const Home = () => {
 			<ChoiceCommentDialog />
 
 			<CommentsDialog />
-			<Container component='main' maxWidth='sm'>
+			<Container component='main' maxWidth='sm' style={{ marginBottom: 30 }}>
 				{data && data.length === 0 ? (
 					<Alert
 						style={{ marginTop: '20px', width: '100%' }}
@@ -749,11 +786,8 @@ const Home = () => {
 									{item.likes.includes(user._id) ? (
 										<>
 											{likeLoading && item._id === likeId ? (
-												<IconButton>
-													<CircularProgress
-														size={21}
-														style={{ margin: '2px' }}
-													/>
+												<IconButton disabled>
+													<FavoriteIcon style={{ color: 'red' }} />
 													{item.likes.length}
 												</IconButton>
 											) : (
@@ -771,11 +805,8 @@ const Home = () => {
 									) : (
 										<>
 											{likeLoading && item._id === likeId ? (
-												<IconButton>
-													<CircularProgress
-														size={21}
-														style={{ margin: '2px' }}
-													/>
+												<IconButton disabled>
+													<FavoriteIcon />
 													{item.likes.length}
 												</IconButton>
 											) : (
@@ -802,11 +833,6 @@ const Home = () => {
 										{item.comments.length}
 									</IconButton>
 								</CardActions>
-								{/* <CardActions>
-									<div style={{ margin: '0', padding: '0' }}>
-										{item.likes.length}
-									</div>
-								</CardActions> */}
 							</Card>
 						);
 					})}

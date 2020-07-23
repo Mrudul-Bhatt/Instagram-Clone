@@ -171,6 +171,7 @@ export default function Signup() {
 							color='primary'
 							className={classes.submit}
 							onClick={() => signup()}
+							disabled={loader}
 						>
 							Sign Up
 						</Button>

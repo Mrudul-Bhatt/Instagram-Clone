@@ -203,7 +203,7 @@ export default function NavBar() {
 					<DialogTitle>{'Log Out ?'}</DialogTitle>
 					<DialogContent>
 						<DialogContentText>
-							Do you want to log out this session ?
+							Do you want to log out this session?
 						</DialogContentText>
 					</DialogContent>
 					<DialogActions>
@@ -309,7 +309,7 @@ export default function NavBar() {
 
 			<List>
 				<ListItem button>
-					<ListItemIcon onClick={() => logout()}>
+					<ListItemIcon onClick={() => setLogoutDialog(true)}>
 						<ExitToApp />
 					</ListItemIcon>
 

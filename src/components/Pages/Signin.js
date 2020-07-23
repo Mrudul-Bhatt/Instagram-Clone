@@ -137,6 +137,7 @@ export default function Signin() {
 							color='primary'
 							className={classes.submit}
 							onClick={() => signinHandler()}
+							disabled={loading}
 						>
 							Sign In
 						</Button>
