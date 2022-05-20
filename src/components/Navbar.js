@@ -609,7 +609,7 @@ export default function NavBar() {
 							</IconButton>
 						)}
 						<Typography color='inherit' variant='h6' className={classes.title}>
-							Instagram
+							EduConnect
 						</Typography>
 						{user && (
 							<>

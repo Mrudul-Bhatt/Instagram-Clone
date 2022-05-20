@@ -22,7 +22,7 @@ function Copyright() {
 		<Typography variant='body2' color='textSecondary' align='center'>
 			{'Copyright © '}
 			<Link color='inherit' href='#'>
-				Instagram
+				EduConnect
 			</Link>{' '}
 			{new Date().getFullYear()}
 			{'.'}
@@ -173,7 +173,7 @@ export default function Signup() {
 							onClick={() => signup()}
 							disabled={loader}
 						>
-							Sign Up
+							Sign up
 						</Button>
 						<Grid container justify='flex-end'>
 							<Grid item>

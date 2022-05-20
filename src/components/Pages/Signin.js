@@ -23,7 +23,7 @@ function Copyright() {
 		<Typography variant='body2' color='textSecondary' align='center'>
 			{'Copyright © '}
 			<Link color='inherit' href='#'>
-				Instagram
+				EduConnect
 			</Link>{' '}
 			{new Date().getFullYear()}
 			{'.'}
@@ -139,12 +139,12 @@ export default function Signin() {
 							onClick={() => signinHandler()}
 							disabled={loading}
 						>
-							Sign In
+							Sign in
 						</Button>
 						<Grid container>
 							<Grid item>
 								<Link variant='body2' onClick={() => history.push('/signup')}>
-									{"Don't have an account? Sign Up"}
+									{"Don't have an account? Sign up"}
 								</Link>
 							</Grid>
 						</Grid>
